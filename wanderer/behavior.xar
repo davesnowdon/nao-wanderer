@@ -3946,7 +3946,7 @@ class MyClass(GeneratedClass):
         # 1 = FRAME_WORLD
         pos = motionProxy.getPosition("Head", 1, True)        
         
-        wanderer.init_state(memProxy, self, pos)
+        wanderer.init_state(self, memProxy, pos)
              
         self.onStopped()
 
@@ -4006,12 +4006,12 @@ class MyClass(GeneratedClass):
 
         try:
             import wanderer.wanderer as wanderer
-            from util.mathutil import to_radians
+            from util.mathutil import to_degrees
         except:
             import sys
             sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")         
             import wanderer.wanderer as wanderer
-            from util.mathutil import to_radians    
+            from util.mathutil import to_degrees  
         
         hRad = wanderer.pick_direction(self, self.memProxy, self.motionProxy, hOffset, bCtrBias)
         wanderer.save_direction(self, self.memProxy, hRad)
@@ -4445,7 +4445,7 @@ class MyClass(GeneratedClass):
 
     def onInput_onStart(self):
         memProxy = ALProxy("ALMemory")
-        theta = float(memProxy.getData("RandomWalkHeading"))
+        theta = float(memProxy.getData("WandererWalkHeading"))
         self.onStopped(theta) 
 
     def onInput_onStop(self):
@@ -5614,7 +5614,7 @@ class MyClass(GeneratedClass):
                                                                     <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
                                                                     <Parameter name="log" inherits_from_parent="0" content_type="3" value="Walk Randomly / LookingForFaces" default_value="" custom_choice="0" tooltip="" id="5" />
                                                                 </Box>
-                                                                <Box name="Find faces" id="2" tooltip="Detect people&apos;s face and return the number of detected faces.&#x0A;&#x0A;Note: Detect even faces that are not registered in NAO&apos;s faces database (that&#x0A;you can teach him with the Learn Face box)." x="210" y="32">
+                                                                <Box name="Find faces" id="2" tooltip="Detect people&apos;s face and return the number of detected faces.&#x0A;&#x0A;Note: Detect even faces that are not registered in NAO&apos;s faces database (that&#x0A;you can teach him with the Learn Face box)." x="286" y="16">
                                                                     <bitmap>media/images/box/interaction/face.png</bitmap>
                                                                     <script language="4">
                                                                         <content>
@@ -6135,7 +6135,7 @@ class MyClass(GeneratedClass):
                                                                     <Output name="timerOutput" type="1" type_size="1" nature="1" inner="0" tooltip="Send a bang once time set in parameters is ellapsed, or if the box is stopped." id="4" />
                                                                     <Parameter name="Timeout (s)" inherits_from_parent="0" content_type="2" value="1" default_value="1" min="0" max="5000" tooltip="Duration the box waits before stimulating the output." id="5" />
                                                                 </Box>
-                                                                <Box name="TriggerIfNotInhibited" id="10" tooltip="Only pass a trigger signal if inhibit has not been set" x="545" y="152">
+                                                                <Box name="TriggerIfNotInhibited" id="10" tooltip="Only pass a trigger signal if inhibit has not been set" x="518" y="155">
                                                                     <bitmap>media/images/box/box-diagram.png</bitmap>
                                                                     <script language="4">
                                                                         <content>
@@ -6191,6 +6191,8 @@ class MyClass(GeneratedClass):
                                                                 <Link inputowner="5" indexofinput="2" outputowner="10" indexofoutput="7" />
                                                                 <Link inputowner="1" indexofinput="2" outputowner="7" indexofoutput="4" />
                                                                 <Link inputowner="2" indexofinput="2" outputowner="0" indexofoutput="1" />
+                                                                <Link inputowner="10" indexofinput="2" outputowner="0" indexofoutput="1" />
+                                                                <Link inputowner="5" indexofinput="2" outputowner="0" indexofoutput="1" />
                                                             </Diagram>
                                                         </BehaviorKeyframe>
                                                         <BehaviorKeyframe name="L2-Inactive-2" index="45">
