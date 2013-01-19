@@ -3933,20 +3933,21 @@ class MyClass(GeneratedClass):
         pass
 
     def onInput_onStart(self, p):
-        memProxy = ALProxy("ALMemory")
-        # getData & removeData throw errors if the value is not set, so just set to empty string
-        memProxy.insertData("RandomWalkObstructionSide", "")
+        try:
+            import wanderer.wanderer as wanderer
+        except:
+            import sys
+            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")         
+            import wanderer.wanderer as wanderer        
         
-        # set "security distance"
-        memProxy.insertData("RandomWalkSecurityDistance", "0.25")
-
-        # set initial position (in list of positions)
+        memProxy = ALProxy("ALMemory")
         motionProxy = ALProxy("ALMotion")
         #pos = motionProxy.getRobotPosition(True)
         # 1 = FRAME_WORLD
-        pos = motionProxy.getPosition("Head", 1, True)
-        memProxy.insertData("RandomWalkPath", [pos])        
+        pos = motionProxy.getPosition("Head", 1, True)        
         
+        wanderer.init_state(memProxy, self, pos)
+             
         self.onStopped()
 
     def onInput_onStop(self):
@@ -3965,7 +3966,7 @@ class MyClass(GeneratedClass):
                                                         </BehaviorKeyframe>
                                                         <BehaviorKeyframe name="PickDirection" index="10">
                                                             <Diagram>
-                                                                <Box name="Goto And Stop (name)" id="1" tooltip="Jump to the frame name set in parameters and stop the parent timeline.&#x0A;&#x0A;!!Warning!! This box does not stop the behavior! It is only the timeline which will&#x0A;stop playing, the keyframes and boxes will still be running." x="429" y="98">
+                                                                <Box name="Goto And Stop (name)" id="1" tooltip="Jump to the frame name set in parameters and stop the parent timeline.&#x0A;&#x0A;!!Warning!! This box does not stop the behavior! It is only the timeline which will&#x0A;stop playing, the keyframes and boxes will still be running." x="298" y="90">
                                                                     <bitmap>media/images/box/box-timeLine.png</bitmap>
                                                                     <script language="4">
                                                                         <content>
@@ -3985,13 +3986,11 @@ class MyClass(GeneratedClass):
                                                                     <bitmap>media/images/box/box-script.png</bitmap>
                                                                     <script language="4">
                                                                         <content>
-                                                                            <![CDATA[import random
-import math
-
-class MyClass(GeneratedClass):
+                                                                            <![CDATA[class MyClass(GeneratedClass):
     def __init__(self):
         GeneratedClass.__init__(self)
         self.memProxy = ALProxy("ALMemory")
+        self.motionProxy = ALProxy("ALMotion")
 
     def onLoad(self):
         # attributes needed in shuffle mode
@@ -4004,75 +4003,28 @@ class MyClass(GeneratedClass):
     def onInput_onStart(self):
         hOffset = self.getParameter("horizontalOffset")        
         bCtrBias = self.getParameter("centerBias")        
+
+        try:
+            import wanderer.wanderer as wanderer
+            from util.mathutil import to_radians
+        except:
+            import sys
+            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")         
+            import wanderer.wanderer as wanderer
+            from util.mathutil import to_radians    
         
-        head = ALMotion.getAngles("Head", True)
-        hHeadAngle = head[0]
-        
-        if bCtrBias and hHeadAngle > 0:
-            hMax = hOffset * math.cos(hHeadAngle) 
-            hMin = (-2 * hOffset) + hMax
-        elif bCtrBias and hHeadAngle < 0:
-            hMin = -hOffset * math.cos(hHeadAngle) 
-            hMax = (2 * hOffset) + hMin
-        else:
-            hMin = -hOffset
-            hMax = hOffset           
-        
-        # do we need to avoid an obstacle?
-        obstruction = self.memProxy.getData("RandomWalkObstructionSide")
-        if obstruction == "left":
-            self.log("there is obstruction on right ")
-            hMin = 0
-        elif obstruction == "right":
-            self.log("there is obstruction on right ")
-            hMAX = 0
-        else:
-            self.log("no obstruction")
-        
-        self.log("hMin = " + str(hMin) + ", hMax = " + str(hMax) + ", head angle = " + str(hHeadAngle) + ", head offset = " + str(hOffset))
-        
-        hDeg = random.uniform(hMin, hMax)
-        hRad = hDeg * math.pi / 180
-        self.log("direction = "+str(hDeg)+" degrees")        
-        self.output_RandomValue(hRad)]]>
+        hRad = wanderer.pick_direction(self, self.memProxy, self.motionProxy, hOffset, bCtrBias)
+        wanderer.save_direction(self, self.memProxy, hRad)
+
+        self.log("direction = "+str(to_degrees(hRad))+" degrees")        
+        self.output_Direction(hRad)]]>
 </content>
                                                                     </script>
                                                                     <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
                                                                     <Input name="onStart" type="1" type_size="1" nature="1" inner="0" tooltip="Generate a random angle." id="2" />
-                                                                    <Output name="output_RandomValue" type="2" type_size="1" nature="2" inner="0" tooltip="The random value obtained." id="3" />
+                                                                    <Output name="output_Direction" type="2" type_size="1" nature="2" inner="0" tooltip="The random value obtained." id="3" />
                                                                     <Parameter name="horizontalOffset" inherits_from_parent="0" content_type="1" value="90" default_value="10" min="1" max="180" tooltip="The angle offset value (in degrees) for the  horizontal axis. The random angle will be between -&lt;offset&gt; and +&lt;offset&gt; " id="4" />
                                                                     <Parameter name="centerBias" inherits_from_parent="0" content_type="0" value="1" default_value="1" tooltip="Use the difference of the current head from center position as a modifier for the random angles. As the head moves farther away from center, the more likely the next random value will be in the direction back toward the center." id="5" />
-                                                                </Box>
-                                                                <Box name="SaveHeading" id="2" tooltip="Enter tooltip here" x="264" y="84">
-                                                                    <bitmap>media/images/box/box-diagram.png</bitmap>
-                                                                    <script language="4">
-                                                                        <content>
-                                                                            <![CDATA[class MyClass(GeneratedClass):
-    def __init__(self):
-        GeneratedClass.__init__(self)
-
-    def onLoad(self):
-        #~ puts code for box initialization here
-        pass
-
-    def onUnload(self):
-        #~ puts code for box cleanup here
-        pass
-
-    def onInput_onStart(self, p):
-        memProxy = ALProxy("ALMemory")
-        memProxy.insertData("RandomWalkHeading", p)
-        self.onStopped() 
-
-    def onInput_onStop(self):
-        self.onUnload() #~ it is recommanded to call onUnload of this box in a onStop method, as the code written in onUnload is used to stop the box as well
-        pass]]>
-</content>
-                                                                    </script>
-                                                                    <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
-                                                                    <Input name="onStart" type="2" type_size="1" nature="2" inner="0" tooltip="Box behavior starts when a signal is received on this input." id="2" />
-                                                                    <Input name="onStop" type="1" type_size="1" nature="3" inner="0" tooltip="Box behavior stops when a signal is received on this input." id="3" />
-                                                                    <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
                                                                 </Box>
                                                                 <Box name="Log" id="8" tooltip="Enter tooltip here" x="95" y="202">
                                                                     <bitmap>media/images/box/box-diagram.png</bitmap>
@@ -4108,9 +4060,8 @@ class MyClass(GeneratedClass):
                                                                     <Parameter name="log" inherits_from_parent="0" content_type="3" value="Walk Randomly / PickDirection" default_value="" custom_choice="0" tooltip="" id="5" />
                                                                 </Box>
                                                                 <Link inputowner="26" indexofinput="2" outputowner="0" indexofoutput="1" />
-                                                                <Link inputowner="2" indexofinput="2" outputowner="26" indexofoutput="3" />
-                                                                <Link inputowner="1" indexofinput="2" outputowner="2" indexofoutput="4" />
                                                                 <Link inputowner="8" indexofinput="2" outputowner="0" indexofoutput="1" />
+                                                                <Link inputowner="1" indexofinput="2" outputowner="26" indexofoutput="3" />
                                                             </Diagram>
                                                         </BehaviorKeyframe>
                                                         <BehaviorKeyframe name="FaceFound" index="20">
@@ -4148,12 +4099,126 @@ class MyClass(GeneratedClass):
                                                                     <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
                                                                     <Parameter name="log" inherits_from_parent="0" content_type="3" value="Walk Randomly / FaceFound" default_value="" custom_choice="0" tooltip="" id="5" />
                                                                 </Box>
+                                                                <Box name="SignalFaceFound" id="1" tooltip="Enter tooltip here" x="129" y="69">
+                                                                    <bitmap>media/images/box/box-diagram.png</bitmap>
+                                                                    <script language="4">
+                                                                        <content>
+                                                                            <![CDATA[class MyClass(GeneratedClass):
+    def __init__(self):
+        GeneratedClass.__init__(self)
+        self.memProxy = ALProxy("ALMemory")
+        self.motionProxy = ALProxy("ALMotion")
+
+    def onLoad(self):
+        #~ puts code for box initialization here
+        pass
+
+    def onUnload(self):
+        #~ puts code for box cleanup here
+        pass
+
+    def onInput_onStart(self):
+        try:
+            import wanderer.wanderer as wanderer
+        except:
+            import sys
+            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")         
+            import wanderer.wanderer as wanderer
+        
+        # 1 = FRAME_WORLD
+        pos = motionProxy.getPosition("Head", 1, True)
+
+        direction = memProxy.getData("WandererFaceDirection")              
+        
+        next_state = wanderer.face_detected(self, self.memProxy, pos, direction)
+        self.output_nextState(next_state)
+        self.onStopped()
+
+    def onInput_onStop(self):
+        self.onUnload() #~ it is recommended to call onUnload of this box in a onStop method, as the code written in onUnload is used to stop the box as well
+        pass]]>
+</content>
+                                                                    </script>
+                                                                    <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
+                                                                    <Input name="onStart" type="1" type_size="1" nature="2" inner="0" tooltip="Box behavior starts when a signal is received on this input." id="2" />
+                                                                    <Input name="onStop" type="1" type_size="1" nature="3" inner="0" tooltip="Box behavior stops when a signal is received on this input." id="3" />
+                                                                    <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
+                                                                    <Output name="output_nextState" type="3" type_size="1" nature="2" inner="0" tooltip="" id="5" />
+                                                                </Box>
+                                                                <Box name="Goto And Stop (name)" id="2" tooltip="Jump to the frame name set in parameters and stop the parent timeline.&#x0A;&#x0A;!!Warning!! This box does not stop the behavior! It is only the timeline which will&#x0A;stop playing, the keyframes and boxes will still be running." x="418" y="100">
+                                                                    <bitmap>media/images/box/box-timeLine.png</bitmap>
+                                                                    <script language="4">
+                                                                        <content>
+                                                                            <![CDATA[class MyClass(GeneratedClass):
+    def __init__(self):
+        GeneratedClass.__init__(self)
+
+    def onInput_onGo(self):
+        self.gotoAndStopParent(self.getParameter("Frame name"))]]>
+</content>
+                                                                    </script>
+                                                                    <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
+                                                                    <Input name="onGo" type="1" type_size="1" nature="1" inner="0" tooltip="Parent timeline gotoAndStop when a signal is received on this input." id="2" />
+                                                                    <Parameter name="Frame name" inherits_from_parent="0" content_type="3" value="" default_value="" custom_choice="0" tooltip="Name of the frame you want to go to." id="3" />
+                                                                </Box>
+                                                                <Box name="Wait" id="3" tooltip="Wait a moment before sending a signal on the output. The wait can be stopped any&#x0A;time. You may restart it any time, and it will start again." x="293" y="20">
+                                                                    <bitmap>media/images/box/wait.png</bitmap>
+                                                                    <script language="4">
+                                                                        <content>
+                                                                            <![CDATA[import threading
+
+class MyClass(GeneratedClass):
+    def __init__(self):
+        try: # disable autoBind
+          GeneratedClass.__init__(self, False)
+        except TypeError: # if NAOqi < 1.14
+          GeneratedClass.__init__( self )
+
+    def onLoad(self):
+        self.tb = False
+
+    def onUnload(self):
+        if( self.tb ):
+            self.tb.cancel()
+            self.tb = False
+
+    def triggerOutput( self, rPeriod = 1 ):
+        self.onUnload() # to clean everything
+        self.timerOutput()
+
+    def startTimer( self, rPeriod = 1 ):
+        if( self.tb ):
+            self.tb.cancel()
+        self.tb = threading.Timer( rPeriod, self.triggerOutput, [rPeriod] )
+        self.tb.start()
+
+    def onInput_onStart(self):
+        self.startTimer( self.getParameter("Timeout (s)") )
+
+    def onInput_onStop(self):
+        bRunning = self.tb
+        self.onUnload()
+        if( bRunning and self.getParameter("Trigger timerOutput if cancelled")):
+            self.timerOutput()]]>
+</content>
+                                                                    </script>
+                                                                    <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
+                                                                    <Input name="onStart" type="1" type_size="1" nature="2" inner="0" tooltip="Start the Wait box with the configured timeout value." id="2" />
+                                                                    <Input name="onStop" type="1" type_size="1" nature="3" inner="0" tooltip="Stop the wait and stimulate the output." id="3" />
+                                                                    <Output name="timerOutput" type="1" type_size="1" nature="1" inner="0" tooltip="Send a bang once time set in parameters is ellapsed, or if the box is stopped." id="4" />
+                                                                    <Parameter name="Timeout (s)" inherits_from_parent="0" content_type="2" value="0.01" default_value="1" min="0" max="5000" tooltip="Duration the box waits before stimulating the output." id="5" />
+                                                                    <Parameter name="Trigger timerOutput if cancelled" inherits_from_parent="0" content_type="0" value="0" default_value="1" tooltip="" id="6" />
+                                                                </Box>
                                                                 <Link inputowner="8" indexofinput="2" outputowner="0" indexofoutput="1" />
+                                                                <Link inputowner="2" indexofinput="3" outputowner="1" indexofoutput="5" />
+                                                                <Link inputowner="1" indexofinput="2" outputowner="0" indexofoutput="1" />
+                                                                <Link inputowner="3" indexofinput="2" outputowner="1" indexofoutput="4" />
+                                                                <Link inputowner="2" indexofinput="2" outputowner="3" indexofoutput="4" />
                                                             </Diagram>
                                                         </BehaviorKeyframe>
                                                         <BehaviorKeyframe name="Walk" index="30">
                                                             <Diagram>
-                                                                <Box name="Goto And Stop (name)" id="1" tooltip="Jump to the frame name set in parameters and stop the parent timeline.&#x0A;&#x0A;!!Warning!! This box does not stop the behavior! It is only the timeline which will&#x0A;stop playing, the keyframes and boxes will still be running." x="539" y="139">
+                                                                <Box name="Goto And Stop (name)" id="1" tooltip="Jump to the frame name set in parameters and stop the parent timeline.&#x0A;&#x0A;!!Warning!! This box does not stop the behavior! It is only the timeline which will&#x0A;stop playing, the keyframes and boxes will still be running." x="537" y="128">
                                                                     <bitmap>media/images/box/box-timeLine.png</bitmap>
                                                                     <script language="4">
                                                                         <content>
@@ -4201,7 +4266,7 @@ class MyClass(GeneratedClass):
                                                                     <Input name="onStop" type="1" type_size="1" nature="3" inner="0" tooltip="Box behavior stops when a signal is received on this input." id="3" />
                                                                     <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
                                                                 </Box>
-                                                                <Box name="Bumpers" id="4" tooltip="Listen to bumpers sensors. Stimulate onLeft or onRight output depending on&#x0A;which bumper is stimulated." x="139" y="219">
+                                                                <Box name="Bumpers" id="4" tooltip="Listen to bumpers sensors. Stimulate onLeft or onRight output depending on&#x0A;which bumper is stimulated." x="139" y="201">
                                                                     <bitmap>media/images/box/movement/move_foot.png</bitmap>
                                                                     <bitmap>media/images/box/movement/move_leftfoot.png</bitmap>
                                                                     <script language="4">
@@ -4346,7 +4411,7 @@ class MyClass(GeneratedClass):
                                                                         </BehaviorLayer>
                                                                     </Timeline>
                                                                 </Box>
-                                                                <Box name="Goto And Stop (name)" id="3" tooltip="Jump to the frame name set in parameters and stop the parent timeline.&#x0A;&#x0A;!!Warning!! This box does not stop the behavior! It is only the timeline which will&#x0A;stop playing, the keyframes and boxes will still be running." x="544" y="259">
+                                                                <Box name="Goto And Stop (name)" id="3" tooltip="Jump to the frame name set in parameters and stop the parent timeline.&#x0A;&#x0A;!!Warning!! This box does not stop the behavior! It is only the timeline which will&#x0A;stop playing, the keyframes and boxes will still be running." x="548" y="289">
                                                                     <bitmap>media/images/box/box-timeLine.png</bitmap>
                                                                     <script language="4">
                                                                         <content>
@@ -4393,7 +4458,7 @@ class MyClass(GeneratedClass):
                                                                     <Input name="onStop" type="1" type_size="1" nature="3" inner="0" tooltip="Box behavior stops when a signal is received on this input." id="3" />
                                                                     <Output name="onStopped" type="2" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
                                                                 </Box>
-                                                                <Box name="Walk Toward" id="10" tooltip="Make NAO walk in the direction you set in parameters.&#x0A;&#x0A;!!Warning!! NAO will not stop walking by himself. You need to either set x, y and theta to 0 or stop the box to stop him.&#x0A;&#x0A;Note: You can set the period of walk direction update in parameters." x="427" y="365">
+                                                                <Box name="Walk Toward" id="10" tooltip="Make NAO walk in the direction you set in parameters.&#x0A;&#x0A;!!Warning!! NAO will not stop walking by himself. You need to either set x, y and theta to 0 or stop the box to stop him.&#x0A;&#x0A;Note: You can set the period of walk direction update in parameters." x="440" y="388">
                                                                     <bitmap>media/images/box/movement/walk_forward.png</bitmap>
                                                                     <script language="4">
                                                                         <content>
@@ -4591,7 +4656,7 @@ class MyClass(GeneratedClass):
                                                                     </Timeline>
                                                                     <Resource name="Legs" type="Lock" timeout="0" />
                                                                 </Box>
-                                                                <Box name="Walk To" id="11" tooltip="Make NAO walk to a configured point relative to its current location." x="284" y="356">
+                                                                <Box name="Walk To" id="11" tooltip="Make NAO walk to a configured point relative to its current location." x="289" y="381">
                                                                     <bitmap>media/images/box/movement/walk_forward.png</bitmap>
                                                                     <script language="4">
                                                                         <content>
@@ -4830,7 +4895,7 @@ class MyClass(GeneratedClass):
                                                                     <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="5" />
                                                                     <Output name="onTriggered" type="1" type_size="1" nature="2" inner="0" tooltip="" id="6" />
                                                                 </Box>
-                                                                <Box name="IfWithinSecurityDistance" id="12" tooltip="Fires if input is within security distance" x="360" y="229">
+                                                                <Box name="IfWithinSecurityDistance" id="12" tooltip="Fires if input is within security distance" x="360" y="271">
                                                                     <bitmap>media/images/box/box-diagram.png</bitmap>
                                                                     <script language="4">
                                                                         <content>
@@ -4870,6 +4935,81 @@ class MyClass(GeneratedClass):
                                                                     <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="5" />
                                                                     <Output name="onTriggered" type="1" type_size="1" nature="2" inner="0" tooltip="" id="6" />
                                                                 </Box>
+                                                                <Box name="SignalStartWalking" id="13" tooltip="Enter tooltip here" x="101" y="534">
+                                                                    <bitmap>media/images/box/box-diagram.png</bitmap>
+                                                                    <script language="4">
+                                                                        <content>
+                                                                            <![CDATA[class MyClass(GeneratedClass):
+    def __init__(self):
+        GeneratedClass.__init__(self)
+        self.memProxy = ALProxy("ALMemory")
+
+    def onLoad(self):
+        #~ puts code for box initialization here
+        pass
+
+    def onUnload(self):
+        #~ puts code for box cleanup here
+        pass
+
+    def onInput_onStart(self):
+        try:
+            import wanderer.wanderer as wanderer
+        except:
+            import sys
+            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")         
+            import wanderer.wanderer as wanderer
+        wanderer.walking_started(self, self.memProxy)        
+        self.onStopped() 
+
+
+    def onInput_onStop(self):
+        self.onUnload() #~ it is recommended to call onUnload of this box in a onStop method, as the code written in onUnload is used to stop the box as well
+        pass]]>
+</content>
+                                                                    </script>
+                                                                    <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
+                                                                    <Input name="onStart" type="1" type_size="1" nature="2" inner="0" tooltip="Box behavior starts when a signal is received on this input." id="2" />
+                                                                    <Input name="onStop" type="1" type_size="1" nature="3" inner="0" tooltip="Box behavior stops when a signal is received on this input." id="3" />
+                                                                    <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
+                                                                </Box>
+                                                                <Box name="SignalStopWalking" id="14" tooltip="Enter tooltip here" x="716" y="216">
+                                                                    <bitmap>media/images/box/box-diagram.png</bitmap>
+                                                                    <script language="4">
+                                                                        <content>
+                                                                            <![CDATA[class MyClass(GeneratedClass):
+    def __init__(self):
+        GeneratedClass.__init__(self)
+        self.memProxy = ALProxy("ALMemory")
+
+    def onLoad(self):
+        #~ puts code for box initialization here
+        pass
+
+    def onUnload(self):
+        #~ puts code for box cleanup here
+        pass
+
+    def onInput_onStart(self):
+        try:
+            import wanderer.wanderer as wanderer
+        except:
+            import sys
+            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")         
+            import wanderer.wanderer as wanderer
+        wanderer.walking_stopped(self, self.memProxy)        
+        self.onStopped() 
+
+    def onInput_onStop(self):
+        self.onUnload() #~ it is recommended to call onUnload of this box in a onStop method, as the code written in onUnload is used to stop the box as well
+        pass]]>
+</content>
+                                                                    </script>
+                                                                    <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
+                                                                    <Input name="onStart" type="1" type_size="1" nature="2" inner="0" tooltip="Box behavior starts when a signal is received on this input." id="2" />
+                                                                    <Input name="onStop" type="1" type_size="1" nature="3" inner="0" tooltip="Box behavior stops when a signal is received on this input." id="3" />
+                                                                    <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
+                                                                </Box>
                                                                 <Link inputowner="2" indexofinput="2" outputowner="0" indexofoutput="1" />
                                                                 <Link inputowner="1" indexofinput="2" outputowner="4" indexofoutput="7" />
                                                                 <Link inputowner="3" indexofinput="2" outputowner="4" indexofoutput="8" />
@@ -4885,6 +5025,11 @@ class MyClass(GeneratedClass):
                                                                 <Link inputowner="1" indexofinput="2" outputowner="9" indexofoutput="6" />
                                                                 <Link inputowner="12" indexofinput="4" outputowner="5" indexofoutput="12" />
                                                                 <Link inputowner="3" indexofinput="2" outputowner="12" indexofoutput="6" />
+                                                                <Link inputowner="13" indexofinput="2" outputowner="0" indexofoutput="1" />
+                                                                <Link inputowner="14" indexofinput="2" outputowner="4" indexofoutput="7" />
+                                                                <Link inputowner="14" indexofinput="2" outputowner="4" indexofoutput="8" />
+                                                                <Link inputowner="14" indexofinput="2" outputowner="12" indexofoutput="6" />
+                                                                <Link inputowner="14" indexofinput="2" outputowner="9" indexofoutput="6" />
                                                             </Diagram>
                                                         </BehaviorKeyframe>
                                                         <BehaviorKeyframe name="ObstacleLeft" index="45">
@@ -4912,6 +5057,7 @@ class MyClass(GeneratedClass):
                                                                             <![CDATA[class MyClass(GeneratedClass):
     def __init__(self):
         GeneratedClass.__init__(self)
+        self.memProxy = ALProxy("ALMemory")
 
     def onLoad(self):
         #~ puts code for box initialization here
@@ -4922,8 +5068,13 @@ class MyClass(GeneratedClass):
         pass
 
     def onInput_onStart(self, p):
-        memProxy = ALProxy("ALMemory")
-        memProxy.insertData("RandomWalkObstructionSide", "left")
+        try:
+            import wanderer.wanderer as wanderer
+        except:
+            import sys
+            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")         
+            import wanderer.wanderer as wanderer
+        wanderer.obstacle_found(self, self.memProxy, "left")
         self.onStopped()
 
     def onInput_onStop(self):
@@ -4935,7 +5086,6 @@ class MyClass(GeneratedClass):
                                                                     <Input name="onStart" type="0" type_size="1" nature="2" inner="0" tooltip="Box behavior starts when a signal is received on this input." id="2" />
                                                                     <Input name="onStop" type="1" type_size="1" nature="3" inner="0" tooltip="Box behavior stops when a signal is received on this input." id="3" />
                                                                     <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
-                                                                    <Parameter name="memoryLocation" inherits_from_parent="0" content_type="3" value="InterviewerFaceDirection" default_value="" custom_choice="0" tooltip="" id="5" />
                                                                 </Box>
                                                                 <Box name="Log" id="8" tooltip="Enter tooltip here" x="157" y="25">
                                                                     <bitmap>media/images/box/box-diagram.png</bitmap>
@@ -5000,6 +5150,7 @@ class MyClass(GeneratedClass):
                                                                             <![CDATA[class MyClass(GeneratedClass):
     def __init__(self):
         GeneratedClass.__init__(self)
+        self.memProxy = ALProxy("ALMemory")
 
     def onLoad(self):
         #~ puts code for box initialization here
@@ -5010,8 +5161,13 @@ class MyClass(GeneratedClass):
         pass
 
     def onInput_onStart(self, p):
-        memProxy = ALProxy("ALMemory")
-        memProxy.insertData("RandomWalkObstructionSide", "right")
+        try:
+            import wanderer.wanderer as wanderer
+        except:
+            import sys
+            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")         
+            import wanderer.wanderer as wanderer
+        wanderer.obstacle_found(self, self.memProxy, "right")
         self.onStopped()
 
     def onInput_onStop(self):
@@ -5023,7 +5179,6 @@ class MyClass(GeneratedClass):
                                                                     <Input name="onStart" type="0" type_size="1" nature="2" inner="0" tooltip="Box behavior starts when a signal is received on this input." id="2" />
                                                                     <Input name="onStop" type="1" type_size="1" nature="3" inner="0" tooltip="Box behavior stops when a signal is received on this input." id="3" />
                                                                     <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
-                                                                    <Parameter name="memoryLocation" inherits_from_parent="0" content_type="3" value="InterviewerFaceDirection" default_value="" custom_choice="0" tooltip="" id="5" />
                                                                 </Box>
                                                                 <Box name="Log" id="8" tooltip="Enter tooltip here" x="108" y="175">
                                                                     <bitmap>media/images/box/box-diagram.png</bitmap>
@@ -5088,6 +5243,7 @@ class MyClass(GeneratedClass):
                                                                             <![CDATA[class MyClass(GeneratedClass):
     def __init__(self):
         GeneratedClass.__init__(self)
+        self.memProxy = ALProxy("ALMemory")
 
     def onLoad(self):
         #~ puts code for box initialization here
@@ -5098,8 +5254,13 @@ class MyClass(GeneratedClass):
         pass
 
     def onInput_onStart(self, p):
-        memProxy = ALProxy("ALMemory")
-        memProxy.insertData("RandomWalkObstructionSide", "centre")
+        try:
+            import wanderer.wanderer as wanderer
+        except:
+            import sys
+            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")         
+            import wanderer.wanderer as wanderer
+        wanderer.obstacle_found(self, self.memProxy, "centre")
         self.onStopped()
 
     def onInput_onStop(self):
@@ -5111,7 +5272,6 @@ class MyClass(GeneratedClass):
                                                                     <Input name="onStart" type="0" type_size="1" nature="2" inner="0" tooltip="Box behavior starts when a signal is received on this input." id="2" />
                                                                     <Input name="onStop" type="1" type_size="1" nature="3" inner="0" tooltip="Box behavior stops when a signal is received on this input." id="3" />
                                                                     <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
-                                                                    <Parameter name="memoryLocation" inherits_from_parent="0" content_type="3" value="InterviewerFaceDirection" default_value="" custom_choice="0" tooltip="" id="5" />
                                                                 </Box>
                                                                 <Box name="Log" id="8" tooltip="Enter tooltip here" x="111" y="141">
                                                                     <bitmap>media/images/box/box-diagram.png</bitmap>
@@ -5331,7 +5491,8 @@ class MyClass(GeneratedClass):
                                                                             <![CDATA[class MyClass(GeneratedClass):
     def __init__(self):
         GeneratedClass.__init__(self)
-        pass
+        self.memProxy = ALProxy("ALMemory")
+        self.motionProxy = ALProxy("ALMotion")
 
     def onLoad(self):
         #~ puts code for box initialization here
@@ -5343,19 +5504,16 @@ class MyClass(GeneratedClass):
 
     def onInput_onStart(self):
         # add current position to path
-        memProxy = ALProxy("ALMemory")
-        motionProxy = ALProxy("ALMotion")
-        
-        path = memProxy.getData("RandomWalkPath") 
-        #pos = motionProxy.getRobotPosition(True)
-        # 1 = FRAME_WORLD
-        pos = motionProxy.getPosition("Head", 1, True)
-        path.append(pos)
-        self.log("Path = "+str(path))
-        memProxy.insertData("RandomWalkPath", path) 
-        
+        try:
+            import wanderer.wanderer as wanderer
+        except:
+            import sys
+            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")         
+            import wanderer.wanderer as wanderer
+
+        pos = wanderer.get_position(self, self.motionProxy)
+        wanderer.save_waypoint(self, self.memProxy, pos)
                 
-        
         self.onStopped() #~ activate output of the box
 
 
@@ -5679,11 +5837,9 @@ class MyClass(GeneratedClass):
         pass
 
     def onInput_onStart(self, p):
-        #~ self.onStopped() #~ activate output of the box
         memProxy = ALProxy("ALMemory")
-        #memProxy.insertData("InterviewerFaceDirection", p)
         memProxy.insertData(self.getParameter("memoryLocation"), p)               
-        pass
+        self.onStopped()
 
     def onInput_onStop(self):
         self.onUnload() #~ it is recommanded to call onUnload of this box in a onStop method, as the code written in onUnload is used to stop the box as well
