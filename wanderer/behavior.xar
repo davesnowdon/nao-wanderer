@@ -59,7 +59,7 @@
                                                 <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
                                                 <Input name="onStop" type="1" type_size="1" nature="1" inner="0" tooltip="Parent timeline stops when a signal is received on this input." id="2" />
                                             </Box>
-                                            <Box name="gotoMain" id="2" tooltip="Jump to a given frame (edit parameters to modify it) and stop the timeline parent at this index. Note that all the behavior keyframes will be loaded, and therefore the event logic will still be running." x="572" y="32">
+                                            <Box name="gotoMain" id="2" tooltip="Jump to a given frame (edit parameters to modify it) and stop the timeline parent at this index. Note that all the behavior keyframes will be loaded, and therefore the event logic will still be running." x="683" y="9">
                                                 <bitmap>media/images/box/box-timeLine.png</bitmap>
                                                 <script language="4">
                                                     <content>
@@ -83,7 +83,7 @@
                                                 <Input name="onStart" type="1" type_size="1" nature="2" inner="0" tooltip="Parent timeline gotoAndStop when a signal is received on this input." id="2" />
                                                 <Parameter name="frame name" inherits_from_parent="0" content_type="3" value="Main" default_value="" custom_choice="0" tooltip="" id="3" />
                                             </Box>
-                                            <Box name="Stand" id="4" tooltip='Robot will go to the position &quot;Stand&#x0A;Position description : Standing position with low power consumption. &#x0A;' x="438" y="31">
+                                            <Box name="Stand" id="4" tooltip='Robot will go to the position &quot;Stand&#x0A;Position description : Standing position with low power consumption. &#x0A;' x="385" y="21">
                                                 <bitmap>media/images/positions/Stand.png</bitmap>
                                                 <script language="4">
                                                     <content>
@@ -3626,46 +3626,6 @@ class MyClass(GeneratedClass):
                                                 </Timeline>
                                                 <Resource name="All motors" type="Lock" timeout="0" />
                                             </Box>
-                                            <Box name="Comment" id="5" tooltip="To comment your behavior. Enter the text here and move the box where you like&#x0A;to add the comment.&#x0A;&#x0A;Note: This box is not functional and has no effect on the behavior." plugin="textedit_plugin" x="57" y="452">
-                                                <bitmap>media/images/box/box-script.png</bitmap>
-                                                <script language="4">
-                                                    <content>
-                                                        <![CDATA[class MyClass(GeneratedClass):
-	def __init__(self):
-		try: # disable autoBind
-		  GeneratedClass.__init__(self, False)
-		except TypeError: # if NAOqi < 1.14
-		  GeneratedClass.__init__( self )
-
-	def onInput_onStart(self):
-		self.onStopped("Stopping the timeline is important!")]]>
-</content>
-                                                </script>
-                                                <pluginContent>
-                                                    <text>Stopping the timeline is important!</text>
-                                                </pluginContent>
-                                                <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when Diagram is loaded." id="1" />
-                                            </Box>
-                                            <Box name="Comment" id="6" tooltip="To comment your behavior. Enter the text here and move the box where you like&#x0A;to add the comment.&#x0A;&#x0A;Note: This box is not functional and has no effect on the behavior." plugin="textedit_plugin" x="308" y="288">
-                                                <bitmap>media/images/box/box-script.png</bitmap>
-                                                <script language="4">
-                                                    <content>
-                                                        <![CDATA[class MyClass(GeneratedClass):
-	def __init__(self):
-		try: # disable autoBind
-		  GeneratedClass.__init__(self, False)
-		except TypeError: # if NAOqi < 1.14
-		  GeneratedClass.__init__( self )
-
-	def onInput_onStart(self):
-		self.onStopped("Make your robot stand up if necessary. All initializations can be done here (switch languages / cameras ...)")]]>
-</content>
-                                                </script>
-                                                <pluginContent>
-                                                    <text>Make your robot stand up if necessary. All initializations can be done here (switch languages / cameras ...)</text>
-                                                </pluginContent>
-                                                <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when Diagram is loaded." id="1" />
-                                            </Box>
                                             <Box name="Set Stiffness" id="7" tooltip="Stiffen the motors selected in parameters." x="151" y="165">
                                                 <bitmap>media/images/box/movement/stiffness.png</bitmap>
                                                 <script language="4">
@@ -3749,13 +3709,57 @@ class MyClass(GeneratedClass):
                                                 <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
                                                 <Parameter name="log" inherits_from_parent="0" content_type="3" value="Init" default_value="" custom_choice="0" tooltip="" id="5" />
                                             </Box>
+                                            <Box name="InitState" id="9" tooltip="Enter tooltip here" x="525" y="20">
+                                                <bitmap>media/images/box/box-diagram.png</bitmap>
+                                                <script language="4">
+                                                    <content>
+                                                        <![CDATA[class MyClass(GeneratedClass):
+    def __init__(self):
+        GeneratedClass.__init__(self)
+
+    def onLoad(self):
+        #~ puts code for box initialization here
+        pass
+
+    def onUnload(self):
+        #~ puts code for box cleanup here
+        pass
+
+    def onInput_onStart(self, p):
+        try:
+            import wanderer.wanderer as wanderer
+        except:
+            import sys
+            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")         
+            import wanderer.wanderer as wanderer        
+        
+        memProxy = ALProxy("ALMemory")
+        motionProxy = ALProxy("ALMotion")
+        #pos = motionProxy.getRobotPosition(True)
+        # 1 = FRAME_WORLD
+        pos = motionProxy.getPosition("Head", 1, True)        
+        
+        wanderer.init_state(self, memProxy, pos)
+             
+        self.onStopped()
+
+    def onInput_onStop(self):
+        self.onUnload() #~ it is recommanded to call onUnload of this box in a onStop method, as the code written in onUnload is used to stop the box as well]]>
+</content>
+                                                </script>
+                                                <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
+                                                <Input name="onStart" type="0" type_size="1" nature="2" inner="0" tooltip="Box behavior starts when a signal is received on this input." id="2" />
+                                                <Input name="onStop" type="1" type_size="1" nature="3" inner="0" tooltip="Box behavior stops when a signal is received on this input." id="3" />
+                                                <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
+                                            </Box>
                                             <Link inputowner="3" indexofinput="2" outputowner="0" indexofoutput="1" />
-                                            <Link inputowner="2" indexofinput="2" outputowner="4" indexofoutput="4" />
                                             <Link inputowner="4" indexofinput="2" outputowner="1" indexofoutput="4" />
                                             <Link inputowner="0" indexofinput="4" outputowner="1" indexofoutput="5" />
                                             <Link inputowner="1" indexofinput="2" outputowner="7" indexofoutput="3" />
                                             <Link inputowner="7" indexofinput="2" outputowner="0" indexofoutput="1" />
                                             <Link inputowner="8" indexofinput="2" outputowner="0" indexofoutput="1" />
+                                            <Link inputowner="9" indexofinput="2" outputowner="4" indexofoutput="4" />
+                                            <Link inputowner="2" indexofinput="2" outputowner="9" indexofoutput="4" />
                                         </Diagram>
                                     </BehaviorKeyframe>
                                     <BehaviorKeyframe name="Main" index="8">
@@ -4882,7 +4886,7 @@ class MyClass(GeneratedClass):
 
     def onInput_onDistance(self, p):
         self.log(" p = "+str(p))
-        securityDistance = self.memProxy.getData("RandomWalkSecurityDistance")
+        securityDistance = self.memProxy.getData("WandererSecurityDistance")
         if float(p) <= float(securityDistance):
             self.onTriggered()
             self.log("Distance "+str(p)+" within security distance "+str(securityDistance))]]>
@@ -4922,7 +4926,7 @@ class MyClass(GeneratedClass):
 
     def onInput_onDistance(self, p):
         self.log(" p = "+str(p))
-        securityDistance = self.memProxy.getData("RandomWalkSecurityDistance")
+        securityDistance = self.memProxy.getData("WandererSecurityDistance")
         if float(p) <= float(securityDistance):
             self.onTriggered()
             self.log("Distance "+str(p)+" within security distance "+str(securityDistance))]]>
