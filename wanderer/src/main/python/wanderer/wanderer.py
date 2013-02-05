@@ -8,6 +8,10 @@ import math
 
 from util.mathutil import to_radians
 
+import robotstate
+import event
+import action
+
 '''
 Here we define the memory locations used to store state
 '''
