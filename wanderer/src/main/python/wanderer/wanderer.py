@@ -23,6 +23,12 @@ MEM_WALK_PATH = "WandererWalkPath"
 MEM_DETECTED_FACE_DIRECTION = "WandererFaceDirection"
 
 '''
+Wanderer specific events
+'''
+EVENT_OBSTACLE_DETECTED = "WandererObstacleDetected"
+EVENT_FACE_DETECTED = "WandererFaceDetected"
+
+'''
 The various walking states
 '''
 STATE_WALK = "Walk"
@@ -37,6 +43,10 @@ def init_state(caller, memProxy, startPos):
 
     # set initial position (in list of positions)
     memProxy.insertData(MEM_WALK_PATH, [startPos])   
+    
+    # declare wanderer specific events
+    memProxy.declareEvent(EVENT_OBSTACLE_DETECTED)
+    memProxy.declareEvent(EVENT_FACE_DETECTED)
 
 '''
 Choose the next direction to head in

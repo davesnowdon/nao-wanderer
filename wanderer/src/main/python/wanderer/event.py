@@ -11,12 +11,14 @@ class Event(object):
         super(Event, self).__init__()
 
 class ObstacleDetected(Event):
-    def __init__(self):
+    def __init__(self, source):
         super(ObstacleDetected, self).__init__()
+        self.source = source
 
 class FaceDetected(Event):
-    def __init__(self):
+    def __init__(self, direction):
         super(ObstacleDetected, self).__init__()
+        self.faceDirection = direction
 
 class FaceRecognised(Event):
     def __init__(self):

@@ -6,6 +6,31 @@ Created on Feb 4, 2013
 Code handling robot state (sensors, motor current etc)
 '''
 
+from naoqi import ALProxy
+
+# joint names in same order as returned by ALMotion.getAngles('Body')
+JOINT_NAMES = ('HeadYaw', 'HeadPitch', 
+               'LShoulderPitch', 'LShoulderRoll', 'LElbowYaw', 'LElbowRoll', 
+               'LWristYaw', 'LHand',
+               'LHipYawPitch', 'LHipRoll', 'LHipPitch', 
+               'LKneePitch', 'LAnklePitch', 'LAnkleRoll',
+               'RHipYawPitch', 'RHipRoll', 'RHipPitch', 
+               'RKneePitch',  'RAnklePitch', 'RAnkleRoll',
+               'RShoulderPitch', 'RShoulderRoll', 'RElbowYaw', 'RElbowRoll', 
+               'RWristYaw', 'RHand')
+
+SENSOR_NAMES = ()
+
+'''
+Hold NAO proxies
+'''
+class Proxies(object):
+    def __init__(self, memory, motion, tts):
+        super(Sensors, self).__init__()
+        self.memory = memory
+        self.motion = motion
+        self.tts = tts
+
 '''
 Current sensor values
 '''
@@ -24,6 +49,16 @@ class Motors(object):
 Information about robot joint angles
 '''
 class Joints(object):
-    def __init__(self):
+    def __init__(self, proxies):
         super(Joints, self).__init__()
+        self.motionProxy = proxies.motion
+    
+    def get_joint(self, name):
+        return self.joints[name]
+    
+    def get_joint_angles(self):
+        angles = self.motionProxy.getAngles("Body", self.useSensors)
+        self.joints = { }
+        for n, v in zip(JOINT_NAMES, angles):
+            self.joints[n].angle = v
         
