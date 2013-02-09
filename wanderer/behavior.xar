@@ -3709,57 +3709,13 @@ class MyClass(GeneratedClass):
                                                 <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
                                                 <Parameter name="log" inherits_from_parent="0" content_type="3" value="Init" default_value="" custom_choice="0" tooltip="" id="5" />
                                             </Box>
-                                            <Box name="InitState" id="9" tooltip="Enter tooltip here" x="525" y="20">
-                                                <bitmap>media/images/box/box-diagram.png</bitmap>
-                                                <script language="4">
-                                                    <content>
-                                                        <![CDATA[class MyClass(GeneratedClass):
-    def __init__(self):
-        GeneratedClass.__init__(self)
-
-    def onLoad(self):
-        #~ puts code for box initialization here
-        pass
-
-    def onUnload(self):
-        #~ puts code for box cleanup here
-        pass
-
-    def onInput_onStart(self, p):
-        try:
-            import wanderer.wanderer as wanderer
-        except:
-            import sys
-            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")         
-            import wanderer.wanderer as wanderer        
-        
-        memProxy = ALProxy("ALMemory")
-        motionProxy = ALProxy("ALMotion")
-        #pos = motionProxy.getRobotPosition(True)
-        # 1 = FRAME_WORLD
-        pos = motionProxy.getPosition("Head", 1, True)        
-        
-        wanderer.init_state(self, memProxy, pos)
-             
-        self.onStopped()
-
-    def onInput_onStop(self):
-        self.onUnload() #~ it is recommanded to call onUnload of this box in a onStop method, as the code written in onUnload is used to stop the box as well]]>
-</content>
-                                                </script>
-                                                <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
-                                                <Input name="onStart" type="0" type_size="1" nature="2" inner="0" tooltip="Box behavior starts when a signal is received on this input." id="2" />
-                                                <Input name="onStop" type="1" type_size="1" nature="3" inner="0" tooltip="Box behavior stops when a signal is received on this input." id="3" />
-                                                <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
-                                            </Box>
                                             <Link inputowner="3" indexofinput="2" outputowner="0" indexofoutput="1" />
                                             <Link inputowner="4" indexofinput="2" outputowner="1" indexofoutput="4" />
                                             <Link inputowner="0" indexofinput="4" outputowner="1" indexofoutput="5" />
                                             <Link inputowner="1" indexofinput="2" outputowner="7" indexofoutput="3" />
                                             <Link inputowner="7" indexofinput="2" outputowner="0" indexofoutput="1" />
                                             <Link inputowner="8" indexofinput="2" outputowner="0" indexofoutput="1" />
-                                            <Link inputowner="9" indexofinput="2" outputowner="4" indexofoutput="4" />
-                                            <Link inputowner="2" indexofinput="2" outputowner="9" indexofoutput="4" />
+                                            <Link inputowner="2" indexofinput="2" outputowner="4" indexofoutput="4" />
                                         </Diagram>
                                     </BehaviorKeyframe>
                                     <BehaviorKeyframe name="Main" index="8">
@@ -3926,7 +3882,7 @@ class MyClass(GeneratedClass):
                                                         </BehaviorKeyframe>
                                                         <BehaviorKeyframe name="Decide" index="10">
                                                             <Diagram>
-                                                                <Box name="Goto And Stop (name)" id="1" tooltip="Jump to the frame name set in parameters and stop the parent timeline.&#x0A;&#x0A;!!Warning!! This box does not stop the behavior! It is only the timeline which will&#x0A;stop playing, the keyframes and boxes will still be running." x="298" y="90">
+                                                                <Box name="Goto And Stop (name)" id="1" tooltip="Jump to the frame name set in parameters and stop the parent timeline.&#x0A;&#x0A;!!Warning!! This box does not stop the behavior! It is only the timeline which will&#x0A;stop playing, the keyframes and boxes will still be running." x="814" y="68">
                                                                     <bitmap>media/images/box/box-timeLine.png</bitmap>
                                                                     <script language="4">
                                                                         <content>
@@ -3942,7 +3898,7 @@ class MyClass(GeneratedClass):
                                                                     <Input name="onGo" type="1" type_size="1" nature="1" inner="0" tooltip="Parent timeline gotoAndStop when a signal is received on this input." id="2" />
                                                                     <Parameter name="Frame name" inherits_from_parent="0" content_type="3" value="Act" default_value="" custom_choice="0" tooltip="Name of the frame you want to go to." id="3" />
                                                                 </Box>
-                                                                <Box name="Pick direction" id="26" tooltip="Choose random direction to walk in" x="124" y="86">
+                                                                <Box name="Pick direction" id="26" tooltip="Choose random direction to walk in" x="496" y="39">
                                                                     <bitmap>media/images/box/box-script.png</bitmap>
                                                                     <script language="4">
                                                                         <content>
@@ -4019,9 +3975,50 @@ class MyClass(GeneratedClass):
                                                                     <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
                                                                     <Parameter name="log" inherits_from_parent="0" content_type="3" value="Explore / Decide" default_value="" custom_choice="0" tooltip="" id="5" />
                                                                 </Box>
-                                                                <Link inputowner="26" indexofinput="2" outputowner="0" indexofoutput="1" />
+                                                                <Box name="Plan" id="2" tooltip="" x="344" y="258">
+                                                                    <bitmap>media/images/box/box-diagram.png</bitmap>
+                                                                    <script language="4">
+                                                                        <content>
+                                                                            <![CDATA[class MyClass(GeneratedClass):
+    def __init__(self):
+        GeneratedClass.__init__(self)
+        pass
+
+    def onLoad(self):
+        pass
+
+    def onUnload(self):
+        #~ puts code for box cleanup here
+        pass
+
+    def onInput_onStart(self):
+        #~ self.onStopped() #~ activate output of the box
+         try:
+            from wanderer.event_handlers import Wanderer
+         except:
+            import sys
+            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")
+            from wanderer.event_handlers import Wanderer
+            from wanderer.event import *
+            from wanderer.robotstate import Proxies
+            proxies = Proxies(ALProxy("ALMemory"), ALProxy("ALMotion"), None)
+            self.wanderer = Wanderer(self, proxies)
+            self.wanderer.handleEvent(Start(), None)
+            self.log(str(proxies.memory.getData("WandererActions")))
+
+    def onInput_onStop(self):
+        self.onUnload() #~ it is recommended to call onUnload of this box in a onStop method, as the code written in onUnload is used to stop the box as well
+        pass]]>
+</content>
+                                                                    </script>
+                                                                    <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
+                                                                    <Input name="onStart" type="1" type_size="1" nature="2" inner="0" tooltip="Box behavior starts when a signal is received on this input." id="2" />
+                                                                    <Input name="onStop" type="1" type_size="1" nature="3" inner="0" tooltip="Box behavior stops when a signal is received on this input." id="3" />
+                                                                    <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
+                                                                </Box>
                                                                 <Link inputowner="8" indexofinput="2" outputowner="0" indexofoutput="1" />
                                                                 <Link inputowner="1" indexofinput="2" outputowner="26" indexofoutput="3" />
+                                                                <Link inputowner="2" indexofinput="2" outputowner="0" indexofoutput="1" />
                                                             </Diagram>
                                                         </BehaviorKeyframe>
                                                         <BehaviorKeyframe name="Act" index="30">
@@ -13021,7 +13018,7 @@ class MyClass(GeneratedClass):
                                     </BehaviorKeyframe>
                                 </BehaviorLayer>
                                 <BehaviorLayer name="fall management">
-                                    <BehaviorKeyframe name="Watch state" index="8">
+                                    <BehaviorKeyframe name="Watch state" index="11">
                                         <Diagram>
                                             <Box name="gotoStandUp" id="4" tooltip="Jump to a given frame (edit parameters to modify it) and stop the timeline parent at this index. Note that all the behavior keyframes will be loaded, and therefore the event logic will still be running." x="545" y="53">
                                                 <bitmap>media/images/box/box-timeLine.png</bitmap>
