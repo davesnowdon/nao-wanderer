@@ -18,6 +18,3 @@ Storing state
 * WandererWalkHeading - direction (rotation about vertical axis) robot is walking in
 * WandererFaceDirection - direction to detected face
 
-TODO
-----
-To-do list moved to wiki <https://github.com/davesnowdon/nao-wanderer/wiki/TODO>
