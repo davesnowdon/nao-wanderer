@@ -26,7 +26,7 @@ Hold NAO proxies
 '''
 class Proxies(object):
     def __init__(self, memory, motion, tts):
-        super(Sensors, self).__init__()
+        #super(Proxies, self).__init__()
         self.memory = memory
         self.motion = motion
         self.tts = tts

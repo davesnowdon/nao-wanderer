@@ -5,14 +5,15 @@ Created on Feb 8, 2013
 '''
 import math
 
-from util.general import *
-from event import *
-from action import *
+#from util.general import *
+#from wanderer.event import *
+#from wanderer.action import *
 from random import Random
 
-class Wanderer:
+class Wanderer(object):
 
     def __init__(self, caller, proxies):
+        super(Wanderer, self).__init__()
         self.caller = caller
         self.proxies = proxies
         self.rng = Random()
