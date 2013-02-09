@@ -17,6 +17,10 @@ class Wanderer:
         self.proxies = proxies
         self.rng = Random()
 
+    def handleEvent(self, event, state):
+        plan = self.dispatch(event, state)
+        proxies.memory.insertData("WandererActions", plan)
+
     def dispatch(self, event, state):
         methodName = 'handle'+ event.name()
         method = getattr(self, methodName)
