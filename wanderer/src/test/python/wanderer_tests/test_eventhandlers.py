@@ -8,7 +8,7 @@ import inspect
 import os
 import unittest
 
-from wanderer.event_handlers import *
+from wanderer.eventhandlers import *
 from wanderer.event import *
 
 class Test(unittest.TestCase):

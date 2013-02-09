@@ -2,7 +2,7 @@
 
 set -eu
 
-export PYTHONPATH=src/main/python/:src/test/python/
+export PYTHONPATH=wanderer/src/main/python/:wanderer/src/test/python/
 
-python -m unittest wanderer_tests.test_event_handlers
+python -m unittest wanderer_tests.test_eventhandlers
 
