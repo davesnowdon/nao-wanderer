@@ -14,6 +14,14 @@ class Event(object):
     def name(self):
         return self.__class__.__name__
 
+class Start(Event):
+    def __init__(self):
+        super(Start, self).__init__()
+
+class BumpOccurred(Event):
+    def __init__(self, side):
+        super(BumpOccurred, self).__init__()
+        self.side = side
 
 class ObstacleDetected(Event):
     def __init__(self, source, sensorData):
