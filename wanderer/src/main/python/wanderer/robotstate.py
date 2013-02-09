@@ -35,14 +35,14 @@ class Proxies(object):
 Current sensor values
 '''
 class Sensors(object):
-    def __init__(self):
+    def __init__(self, proxies):
         super(Sensors, self).__init__()
 
 '''
 Information about motor state, such as current draw
 '''
 class Motors(object):
-    def __init__(self):
+    def __init__(self, proxies):
         super(Motors, self).__init__()
 
 '''
@@ -56,8 +56,8 @@ class Joints(object):
     def get_joint(self, name):
         return self.joints[name]
     
-    def get_joint_angles(self):
-        angles = self.motionProxy.getAngles("Body", self.useSensors)
+    def get_joint_angles(self, useSensors):
+        angles = self.motionProxy.getAngles("Body", useSensors)
         self.joints = { }
         for n, v in zip(JOINT_NAMES, angles):
             self.joints[n].angle = v

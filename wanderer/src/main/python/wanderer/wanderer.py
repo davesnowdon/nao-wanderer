@@ -7,10 +7,12 @@ import random
 import math
 
 from util.mathutil import to_radians
+from util.general import *
 
 import robotstate
-import event
-import action
+from event import *
+from action import *
+from event_handlers import *
 
 '''
 Here we define the memory locations used to store state
@@ -18,87 +20,73 @@ Here we define the memory locations used to store state
 MEM_SECURITY_DISTANCE = "WandererSecurityDistance"
 MEM_LOOK_FOR_FACES = "WandererLookForFaces"
 MEM_HEADING = "WandererWalkHeading"
-MEM_OBSTACLE_LOCATION = "WandererObstacleLocation"
 MEM_WALK_PATH = "WandererWalkPath"
 MEM_DETECTED_FACE_DIRECTION = "WandererFaceDirection"
+MEM_CURRENT_ACTIONS = "WandererActions"
+MEM_COMPLETED_ACTIONS = "WandererActionsCompleted"
+MEM_CURRENT_EVENT = "WandererEvent"
+
 
 '''
-Wanderer specific events
+Map to control functions used to react to events
 '''
-EVENT_OBSTACLE_DETECTED = "WandererObstacleDetected"
-EVENT_FACE_DETECTED = "WandererFaceDetected"
+NULL_EVENT = "null"
+EVENT_HANDLERS = {
+                  NULL_EVENT : handle_null_event,
+                  class_to_name(ObstacleDetected) : handle_obstacle,
+                  class_to_name(FaceDetected) : handle_face,
+                  class_to_name(FaceRecognised) : handle_known_face,
+                  class_to_name(ObjectRecognised) : handle_known_object
+                  }
 
-'''
-The various walking states
-'''
-STATE_WALK = "Walk"
+CENTRE_BIAS = False
+HEAD_HORIZONTAL_OFFSET = 0
 
-def init_state(caller, memProxy, startPos):
+def init_state(caller, proxies, startPos):
     # getData & removeData throw errors if the value is not set, 
-    # so just set to empty string
-    memProxy.insertData(MEM_OBSTACLE_LOCATION, "")
+    # so ensure all the memory locations we want to use are initialised
+    proxies.memory.insertData(MEM_CURRENT_EVENT, None)
     
     # set "security distance"
-    memProxy.insertData(MEM_SECURITY_DISTANCE, "0.25")
+    proxies.memory.insertData(MEM_SECURITY_DISTANCE, "0.25")
+
+    # look for faces by default
+    proxies.memory.insertData(MEM_LOOK_FOR_FACES, True)
 
     # set initial position (in list of positions)
-    memProxy.insertData(MEM_WALK_PATH, [startPos])   
-    
-    # declare wanderer specific events
-    memProxy.declareEvent(EVENT_OBSTACLE_DETECTED)
-    memProxy.declareEvent(EVENT_FACE_DETECTED)
+    proxies.memory.insertData(MEM_WALK_PATH, [startPos])
+
+    # current actions and completed actions
+    proxies.memory.insertData(MEM_CURRENT_ACTIONS, [])
+    proxies.memory.insertData(MEM_COMPLETED_ACTIONS, [])
+
 
 '''
-Choose the next direction to head in
+Base function for creating action plan
+Generates plans (sequences of actions) in response to events. Can
+change behaviour by modifying handlers map.
 '''
-def pick_direction(caller, memProxy, motionProxy, hOffset, bCtrBias):
-    head = motionProxy.getAngles("Head", True)
-    hHeadAngle = head[0]
-    
-    if bCtrBias and hHeadAngle > 0:
-        hMax = hOffset * math.cos(hHeadAngle) 
-        hMin = (-2 * hOffset) + hMax
-    elif bCtrBias and hHeadAngle < 0:
-        hMin = -hOffset * math.cos(hHeadAngle) 
-        hMax = (2 * hOffset) + hMin
+def make_plan(caller, proxies, state, event):
+    plan =[]
+    if event is None:
+        plan = EVENT_HANDLERS[NULL_EVENT](caller, proxies, state, event)
     else:
-        hMin = -hOffset
-        hMax = hOffset           
+        plan = EVENT_HANDLERS[event.name()](caller, proxies, state, event)
     
-    # do we need to avoid an obstacle?
-    obstruction = memProxy.getData(MEM_OBSTACLE_LOCATION)
-    if obstruction == "left":
-        caller.log("there is obstruction on right ")
-        hMin = 0
-    elif obstruction == "right":
-        caller.log("there is obstruction on right ")
-        hMax = 0
-    elif obstruction == "centre":
-        caller.log("there is obstruction in centre ")
-    else:
-        caller.log("no obstruction")
+    log_plan(caller, "New plan", plan)
     
-    caller.log("hMin = " + str(hMin) + ", hMax = " + str(hMax) + ", head angle = " + str(hHeadAngle) + ", head offset = " + str(hOffset))
-        
-    hDeg = random.uniform(hMin, hMax)
-    return to_radians(hDeg)
+    return plan
+
+'''
+Log a plan
+'''
+def log_plan(logger, msg, plan):
+    logger.log(msg)
+    for p in plan:
+        logger.log(str(p))
 
 def save_direction(caller, memProxy, hRad):
     memProxy.insertData(MEM_HEADING, hRad)
-
-def obstacle_found(caller, memProxy, location):
-    caller.log("obstacle found on "+str(location))
-    memProxy.insertData(MEM_OBSTACLE_LOCATION, location)
-
-def face_detected(caller, memProxy, currentPosition, faceDirection):
-    caller.log("face detected")
-    return STATE_WALK
-
-def walking_started(caller, memProxy):
-    caller.log("walking started")
-
-def walking_stopped(caller, memProxy):
-    caller.log("walking stopped")
 
 def get_position(caller, motionProxy):
     # 1 = FRAME_WORLD
@@ -109,4 +97,5 @@ def save_waypoint(caller, memProxy, waypoint):
     path.append(waypoint)
     caller.log("Path = "+str(path))
     memProxy.insertData(MEM_WALK_PATH, path)
+
 
