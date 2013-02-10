@@ -16,6 +16,9 @@ class Action(object):
     def __init__(self):
         super(Action, self).__init__()
 
+    def name(self):
+        return self.__class__.__name__
+
 '''
 Abstract base of any action that causes robot to move
 '''

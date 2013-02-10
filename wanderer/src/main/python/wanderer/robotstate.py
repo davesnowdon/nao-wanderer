@@ -19,24 +19,23 @@ JOINT_NAMES = ('HeadYaw', 'HeadPitch',
                'RShoulderPitch', 'RShoulderRoll', 'RElbowYaw', 'RElbowRoll', 
                'RWristYaw', 'RHand')
 
-SENSOR_NAMES = ()
-
-'''
-Hold NAO proxies
-'''
-class Proxies(object):
-    def __init__(self, memory, motion, tts):
-        #super(Proxies, self).__init__()
-        self.memory = memory
-        self.motion = motion
-        self.tts = tts
+SENSOR_NAMES = ('LeftBumper', 'RightBumper', 'LeftSonar', 'RightSonar')
 
 '''
 Current sensor values
 '''
 class Sensors(object):
-    def __init__(self, proxies):
+    def __init__(self, values):
         super(Sensors, self).__init__()
+        self.sensors = { }
+        for n in SENSOR_NAMES:
+            try:
+                self.sensors[n] = values[n]
+            except KeyError:
+                pass
+    
+    def get_sensor(self, name):
+        return self.sensors[name]
 
 '''
 Information about motor state, such as current draw
