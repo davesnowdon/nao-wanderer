@@ -30,9 +30,9 @@ class WalkForwardsIndefinitely(Move):
     def __init__(self):
         super(WalkForwardsIndefinitely, self).__init__()
 
-class WalkForwards(Move):
+class WalkStraight(Move):
     def __init__(self, distance):
-        super(WalkForwards, self).__init__()
+        super(WalkStraight, self).__init__()
         self.distance = distance
 
 class WalkSideways(Move):

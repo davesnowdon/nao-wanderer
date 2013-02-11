@@ -11,6 +11,8 @@ import unittest
 from wanderer.randomwalk import *
 from wanderer.event import *
 
+from mock import MockBox
+
 class Test(unittest.TestCase):
 
     def test_is_obstruction(self):
@@ -21,19 +23,19 @@ class Test(unittest.TestCase):
         pass
     
     def test_dispatch(self):
-        wanderer = RandomWalk(None, None)
-        event = ObstacleDetected(None, None)
+        wanderer = RandomWalk(MockBox(), None)
+        event = ObstacleDetected('LeftBumper', {'LeftBumper':True})
         wanderer.dispatch(event, None)
 
     def test_startReturnsActions(self):
-        wanderer = RandomWalk(None, None)
+        wanderer = RandomWalk(MockBox(), None)
         actions = wanderer.dispatch(Start(), None)
         self.assertIsNotNone(actions, "dispatch has failed to return an initial action")
         self.assertTrue(len(actions) > 0, "dispatch has returned an empty list of actions")
 
     def test_Bump(self):
-        wanderer = RandomWalk(None, None)
-        actions = wanderer.dispatch(BumpOccurred('left'), None)
+        wanderer = RandomWalk(MockBox(), None)
+        actions = wanderer.dispatch(ObstacleDetected('LeftBumper', {'LeftBumper':True}), None)
         self.assertTrue(actions[0].distance < 0, "backoff after a bump")
         # TODO: sensibly test this
 

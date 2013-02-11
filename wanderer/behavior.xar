@@ -4095,8 +4095,8 @@ class MyClass(GeneratedClass):
                 # choreographe boxes which we signal via outputs
             if isinstance(action, WalkSideways):
                 self.onWalkSideways(action.distance)
-            elif isinstance(action, WalkForwards):
-                self.onWalkForwards(action.distance)
+            elif isinstance(action, WalkStraight):
+                self.onWalk(action.distance)
             elif isinstance(action, WalkForwardsIndefinitely):
                 self.onContinuousWalk(action.distance)
             elif isinstance(action, Turn):
@@ -4634,7 +4634,7 @@ class MyClass(GeneratedClass):
                                                                         </BehaviorLayer>
                                                                     </Timeline>
                                                                 </Box>
-                                                                <Box name="Walk Forwards" id="3" tooltip="Enter tooltip here" x="569" y="136">
+                                                                <Box name="Walk Straight" id="3" tooltip="Enter tooltip here" x="569" y="124">
                                                                     <bitmap>media/images/box/box-diagram.png</bitmap>
                                                                     <script language="4">
                                                                         <content>

@@ -18,16 +18,14 @@ class Start(Event):
     def __init__(self):
         super(Start, self).__init__()
 
-class BumpOccurred(Event):
-    def __init__(self, side):
-        super(BumpOccurred, self).__init__()
-        self.side = side
-
 class ObstacleDetected(Event):
     def __init__(self, source, sensorData):
         super(ObstacleDetected, self).__init__()
         self.source = source
         self.sensorData = sensorData
+
+    def is_bumper(self):
+        return self.source == 'LeftBumper' or self.source == 'RightBumper'
 
 class FaceDetected(Event):
     def __init__(self, direction):

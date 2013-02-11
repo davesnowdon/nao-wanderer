@@ -6,7 +6,8 @@ Created on Feb 8, 2013
 import math
 from random import Random
 
-from util.general import *
+from util.general import class_to_name
+from util.mathutil import to_radians
 from event import *
 from action import *
 from wanderer import Planner
@@ -18,15 +19,20 @@ class RandomWalk(Planner):
         self.rng = Random()
 
     def handleObstacleDetected(self, event, state):
-        pass
+        if event.is_bumper():
+            plan = [WalkStraight(-0.2)]
+        else:
+            plan = []
+        (tmin, tmax) = event_to_obstruction_direction(event)
+        turn = self.rng.uniform(tmin, tmax)
+        self.caller.log("Random turn value = "+str(turn)+" from ("+str(tmin)+", "+str(tmax)+")")
+        plan.append(Turn(turn))
+        plan.append(WalkForwardsIndefinitely())
+        return plan
 
     def handleStart(self, event, state):
-        direction = self.rng.randint(0, 360)
+        direction = to_radians(self.rng.randint(0, 360))
         return [Turn(direction), WalkForwardsIndefinitely()]
-    
-    def handleBumpOccurred(self, event, state):
-        moveIn = 'left' if event.side == 'right' else 'right'
-        return [WalkForwards(-50), Turn(moveIn), WalkForwardsIndefinitely()]
 
     '''
     Take an event representing an obstruction and work out what
@@ -36,7 +42,24 @@ class RandomWalk(Planner):
     '''
 def event_to_obstruction_direction(event):
     if is_obstruction(event):
-        pass
+        if event.source == 'LeftBumper':
+            return (0.0, math.pi)
+        elif event.source == 'RightBumper':
+            return (-math.pi, 0.0)
+        else:
+            leftSonar = float(event.sensorData.get_sensor('LeftSonar'))
+            rightSonar = float(event.sensorData.get_sensor('RightSonar'))
+            smin = min(leftSonar, rightSonar)
+            smax = max(leftSonar, rightSonar)
+            srange = smax - smin
+            normLeftSonar = (leftSonar-smin) / srange
+            normRightSonar = (rightSonar-smin) / srange
+            meanSonar = (normLeftSonar + normRightSonar) / 2.0
+            if meanSonar <= 0.001:
+                return (-math.pi, math.pi)
+            else:
+                return ((normLeftSonar-meanSonar-1.0)*math.pi/2.0,
+                        (1.0-normRightSonar-meanSonar)*math.pi/2.0)
     else:
         return (-math.pi, math.pi)
 

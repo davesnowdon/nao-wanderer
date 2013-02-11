@@ -3,11 +3,6 @@ Created on Jan 19, 2013
 
 @author: dsnowdon
 '''
-import random
-import math
-
-from util.mathutil import to_radians
-from util.general import *
 
 import robotstate
 from event import *
