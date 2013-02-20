@@ -76,30 +76,23 @@ class JsonWithData(JsonTestBase):
 class TestJson(unittest.TestCase):
     def test_json_serialise_base(self):
         b = JsonTestBase()
-        json = to_json_string(b)
-        print "Serialisation of JsonTestbase = \n"+json
-        self.assertIsNotNone(json, "Serialised object should not be None")
-        b2 = from_json_string(json)
-        self.assertTrue(isinstance(b2, JsonTestBase))
-        self.assertEqual(b, b2, "Reconstituted object "+repr(b2)+" must equal original "+repr(b))
-    
+        self.json_serialisation(b)
+
     def test_json_no_data(self):
         b = JsonNoData()
-        json = to_json_string(b)
-        print "Serialisation of JsonNoData = \n"+json
-        self.assertIsNotNone(json, "Serialised object should not be None")
-        b2 = from_json_string(json)
-        self.assertTrue(isinstance(b2, JsonNoData))
-        self.assertEqual(b, b2, "Reconstituted object "+repr(b2)+" must equal original "+repr(b))
+        self.json_serialisation(b)
 
     def test_json_with_data(self):
         b = JsonWithData('foo', { 'a': 123, 'b' : 456})
-        json = to_json_string(b)
-        print "Serialisation of JsonWithData = \n"+json
+        self.json_serialisation(b)
+
+    def json_serialisation(self, ev):
+        json = to_json_string(ev)
+        print "Serialisation of "+object_to_name(ev)+" = \n"+json
         self.assertIsNotNone(json, "Serialised object should not be None")
-        b2 = from_json_string(json)
-        self.assertTrue(isinstance(b2, JsonWithData))
-        self.assertEqual(b, b2, "Reconstituted object "+repr(b2)+" must equal original "+repr(b))
+        rev = from_json_string(json)
+        self.assertTrue(isinstance(rev, ev.__class__))
+        self.assertEqual(ev, rev, "Reconstituted object "+repr(rev)+" must equal original "+repr(ev))
 
 if __name__ == '__main__':
     unittest.main()
