@@ -48,7 +48,6 @@ class ObstacleDetected(Event):
 
     @classmethod
     def from_json(klass, json_object):
-        print "json_object = "+repr(json_object)
         return klass(json_object['source'], Sensors(json_object['sensorData']))
 
 

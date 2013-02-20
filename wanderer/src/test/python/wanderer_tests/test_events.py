@@ -13,7 +13,7 @@ from wanderer.event import *
 from mock import MockBox, make_mock_proxies
 
 class Test(unittest.TestCase):
-    def test_start_start_json(self):
+    def test_start_json(self):
         ev = Start()
         self.json_serialisation(ev)
 
