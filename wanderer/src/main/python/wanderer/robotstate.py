@@ -6,7 +6,6 @@ Created on Feb 4, 2013
 Code handling robot state (sensors, motor current etc)
 '''
 
-from naoqi import ALProxy
 
 # joint names in same order as returned by ALMotion.getAngles('Body')
 JOINT_NAMES = ('HeadYaw', 'HeadPitch', 
@@ -33,9 +32,15 @@ class Sensors(object):
                 self.sensors[n] = values[n]
             except KeyError:
                 pass
-    
+
+    def __eq__(self, other):
+        return self.sensors == other.sensors
+
     def get_sensor(self, name):
         return self.sensors[name]
+
+    def to_map(self):
+        return self.sensors
 
 '''
 Information about motor state, such as current draw
