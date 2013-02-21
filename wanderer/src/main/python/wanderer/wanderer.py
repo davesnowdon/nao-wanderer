@@ -4,6 +4,8 @@ Created on Jan 19, 2013
 @author: dsnowdon
 '''
 
+from util.general import to_json_string, from_json_string
+
 import robotstate
 from event import *
 from action import *
@@ -58,7 +60,7 @@ class Planner(object):
     def handleEvent(self, event, state):
         plan = self.dispatch(event, state)
         save_plan(self.proxies, plan)
-        log_plan(self.caller,plan)
+        log_plan(self.caller, "New plan", plan)
         return plan
 
     def dispatch(self, event, state):
@@ -69,6 +71,7 @@ class Planner(object):
         except AttributeError:
             self.caller.log("Unimplemented event handler for: "+event.name())
 
+
 '''
 Base class for executing plans. Since we may need to trigger choreographe
 boxes we delegate actually performing a single action to an actionExecutor
@@ -76,16 +79,18 @@ which in most cases will be the choreographe box that called us.
 
 The actionExecutor must implement do_action(action) and all_done()
 '''
-class Executor(object):
+class PlanExecutor(object):
     def __init__(self, caller, proxies, actionExecutor):
-        super(Executor, self).__init__()
+        super(PlanExecutor, self).__init__()
         self.caller = caller
         self.proxies = proxies
         self.actionExecutor = actionExecutor
 
     def perform_next_action(self):
+        self.caller.log("perform next action")
         # save completed action to history if there is one
         completedAction = get_current_action(self.proxies)
+        self.caller.log("Completed action = "+repr(completedAction))
         if not completedAction is None:
             if not isinstance(completedAction, NullAction):
                 push_completed_action(self.proxies, completedAction)
@@ -93,16 +98,21 @@ class Executor(object):
                 if isinstance(completedAction, Move):
                     self._have_moved_wrapper()
         
+        self.caller.log("set current action to NullAction")
         # ensure that current action is cleared until we have another one        
-        set_current_action(NullAction())
+        set_current_action(self.proxies, NullAction())
         
+        self.caller.log("pop from plan")
         # pop first action from plan
         action = pop_planned_action(self.proxies)
         if action is None:
+            self.caller.log("No next action")
             self.actionExecutor.all_done()
         else:
-            set_current_action(action)
+            self.caller.log("Next action = "+repr(action))
+            set_current_action(self.proxies, action)
             self.actionExecutor.do_action(action)
+        self.caller.log("perform_next_action done")
 
     # get current and previous positions and call have_moved
     # it's not intended that this method be overridden
@@ -122,42 +132,45 @@ class Executor(object):
         save_waypoint(self.caller, self.proxies, pos)
 
 def load_event(proxies):
-    return proxies.memory.getData(MEM_CURRENT_EVENT)
+    return from_json_string(proxies.memory.getData(MEM_CURRENT_EVENT))
 
-def save_event(proxies, plan):
-    proxies.memory.insertData(MEM_CURRENT_EVENT, plan)
+def save_event(proxies, event):
+    proxies.memory.insertData(MEM_CURRENT_EVENT, to_json_string(event))
 
 def load_plan(proxies):
-    return proxies.memory.getData(MEM_PLANNED_ACTIONS)
+    return from_json_string(proxies.memory.getData(MEM_PLANNED_ACTIONS))
     
 def save_plan(proxies, plan):
-    proxies.memory.insertData(MEM_PLANNED_ACTIONS, plan)
+    proxies.memory.insertData(MEM_PLANNED_ACTIONS, to_json_string(plan))
 
 def load_completed_actions(proxies):
-    return proxies.memory.getData(MEM_COMPLETED_ACTIONS)
+    return from_json_string(proxies.memory.getData(MEM_COMPLETED_ACTIONS))
     
 def save_completed_actions(proxies, actions):
-    proxies.memory.insertData(MEM_COMPLETED_ACTIONS, actions)
+    proxies.memory.insertData(MEM_COMPLETED_ACTIONS, to_json_string(actions))
 
 def pop_planned_action(proxies):
     plan = load_plan(proxies)
     action = None
-    if len(plan) > 0:
-        action = plan[0]
-        plan = plan[1:]
-    else:
-        plan = []
-    save_plan(proxies, plan)
+    if not plan is None:
+        if len(plan) > 0:
+            action = plan[0]
+            plan = plan[1:]
+        else:
+            plan = []
+        save_plan(proxies, plan)
     return action
 
 def get_current_action(proxies):
-    return proxies.memory.getData(MEM_CURRENT_ACTIONS)
+    return from_json_string(proxies.memory.getData(MEM_CURRENT_ACTIONS))
 
 def set_current_action(proxies, action):
-    proxies.memory.insertData(MEM_CURRENT_ACTIONS, action)
+    proxies.memory.insertData(MEM_CURRENT_ACTIONS, to_json_string(action))
 
 def push_completed_action(proxies, action):
     actions = load_completed_actions(proxies)
+    if actions is None:
+        actions = []
     actions.append(action)
     save_completed_actions(proxies, actions)
 
@@ -174,10 +187,12 @@ Get the last position the robot was at by looking at the path
 '''
 def get_last_position(caller, proxies):
     path = proxies.memory.getData(MEM_WALK_PATH)
-    try:
-        pos = path[-1]
-    except IndexError:
-        pos = None
+    pos = None
+    if not path is None:
+        try:
+            pos = path[-1]
+        except IndexError:
+            pass
     return pos
 
 '''
@@ -189,6 +204,8 @@ def get_position(caller, proxies):
 
 def save_waypoint(caller, proxies, waypoint):
     path = proxies.memory.getData(MEM_WALK_PATH)
+    if path is None:
+        path = []
     path.append(waypoint)
     caller.log("Path = "+str(path))
     proxies.memory.insertData(MEM_WALK_PATH, path)

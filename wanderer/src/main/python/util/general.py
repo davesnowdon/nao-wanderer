@@ -71,16 +71,23 @@ and generalised to allow helper functions to be part of the custom classes
 and avoid case statements
 '''
 def to_json_file(obj, fp):
-    json.dump(obj, fp, default=to_json_helper)
+    if not obj is None:
+        json.dump(obj, fp, default=to_json_helper)
 
 def to_json_string(obj):
-    return json.dumps(obj, default=to_json_helper)
+    if obj is None:
+        return ""
+    else:
+        return json.dumps(obj, default=to_json_helper)
 
 def from_json_file(fp):
     return json.load(fp, object_hook=from_json_helper)
 
 def from_json_string(sv):
-    return json.loads(sv, object_hook=from_json_helper)
+    if sv is None or sv == "":
+        return None
+    else:
+        return json.loads(sv, object_hook=from_json_helper)
 
 '''
 Convenience function to generate dictionary in correct format

@@ -3716,7 +3716,7 @@ class MyClass(GeneratedClass):
                                                         <![CDATA[class MyClass(GeneratedClass):
     def __init__(self):
         GeneratedClass.__init__(self)
-
+        
     def onLoad(self):
         #~ puts code for box initialization here
         pass
@@ -3727,19 +3727,20 @@ class MyClass(GeneratedClass):
 
     def onInput_onStart(self, p):
         try:
+            from util.naoutil import make_proxies
             import wanderer.wanderer as wanderer
         except:
             import sys
-            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")         
+            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")
+            from util.naoutil import make_proxies
             import wanderer.wanderer as wanderer        
         
-        memProxy = ALProxy("ALMemory")
-        motionProxy = ALProxy("ALMotion")
+        proxies = make_proxies()
         #pos = motionProxy.getRobotPosition(True)
         # 1 = FRAME_WORLD
-        pos = motionProxy.getPosition("Head", 1, True)        
+        pos = proxies.motion.getPosition("Head", 1, True)        
         
-        wanderer.init_state(self, memProxy, pos)
+        wanderer.init_state(self, proxies, pos)
              
         self.onStopped()
 
@@ -3927,8 +3928,7 @@ class MyClass(GeneratedClass):
                                                                             <![CDATA[class MyClass(GeneratedClass):
     def __init__(self):
         GeneratedClass.__init__(self)
-        self.memProxy = ALProxy("ALMemory")
-
+        
     def onLoad(self):
         #~ puts code for box initialization here
         pass
@@ -3939,13 +3939,22 @@ class MyClass(GeneratedClass):
 
     def onInput_onStart(self):
         try:
+            from util.naoutil import make_proxies
+            from wanderer.wanderer import save_event            
             from wanderer.event import Start
         except:
             import sys
-            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")         
+            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")
+            from util.naoutil import make_proxies
+            from wanderer.wanderer import save_event            
             from wanderer.event import Start
-        self.memProxy.insertData("WandererEvent", Start())
-        self.log("Storing FaceDetected event")    
+        
+        self.proxies = make_proxies()        
+        sd = self.proxies.memory.getData("WandererSecurityDistance")
+        startEvent = Start()        
+        self.log("Storing Start event: "+repr(startEvent))
+        save_event(self.proxies, startEvent)
+        
         self.onStopped()
 
     def onInput_onStop(self):
@@ -3988,13 +3997,6 @@ class MyClass(GeneratedClass):
                                                                             <![CDATA[class MyClass(GeneratedClass):
     def __init__(self):
         GeneratedClass.__init__(self)
-        try:
-            from util.naoutil import make_proxies
-        except:
-            import sys
-            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")         
-            from util.naoutil import make_proxies
-        self.proxies = make_proxies()
 
     def onLoad(self):
         # attributes needed in shuffle mode
@@ -4007,17 +4009,21 @@ class MyClass(GeneratedClass):
     def onInput_onStart(self):
         self.log("Create plan")
         try:
+            from util.naoutil import make_proxies
             from wanderer.wanderer import *
             from wanderer.event import *
             from wanderer.randomwalk import RandomWalk
         except:
             import sys
-            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")         
+            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")
+            from util.naoutil import make_proxies
             from wanderer.wanderer import *
             from wanderer.event import *
             from wanderer.randomwalk import RandomWalk
         
+        self.proxies = make_proxies() 
         event = load_event(self.proxies)
+        self.log("Event = "+str(event))
         wanderer = RandomWalk(self, self.proxies)
         wanderer.handleEvent(event, None)
         self.onStopped()]]>
@@ -4041,6 +4047,8 @@ class MyClass(GeneratedClass):
                                                                             <![CDATA[class MyClass(GeneratedClass):
     def __init__(self):
         GeneratedClass.__init__(self)
+
+    def onLoad(self):
         try:
             from util.naoutil import make_proxies
         except:
@@ -4049,12 +4057,7 @@ class MyClass(GeneratedClass):
             from util.naoutil import make_proxies
         self.proxies = make_proxies()
 
-    def onLoad(self):
-        #~ puts code for box initialization here
-        pass
-
     def onUnload(self):
-        #~ puts code for box cleanup here
         pass
 
     def onInput_onStart(self):
@@ -4069,6 +4072,7 @@ class MyClass(GeneratedClass):
         self.perform_next_action()
         
     def perform_next_action(self):
+        self.log("perform_next_action")
         try:
             from wanderer.wanderer import *
             from wanderer.event import *
@@ -4078,8 +4082,9 @@ class MyClass(GeneratedClass):
             from wanderer.wanderer import *
             from wanderer.event import *
 
-        executor = Executor(self, self.proxies, self)
-        executor.perform_next_action()        
+        executor = PlanExecutor(self, self.proxies, self)
+        executor.perform_next_action()
+        self.log("after perform next action")       
     
     # the executor delegates actually doing an action to this method
     def do_action(self, action):
@@ -4112,6 +4117,7 @@ class MyClass(GeneratedClass):
                 self.onWait(action.delaySeconds)
         
     def all_done(self):
+        self.log("all done")  
         self.onStopped()]]>
 </content>
                                                                     </script>
@@ -5797,7 +5803,8 @@ class MyClass(GeneratedClass):
     def __init__(self):
         GeneratedClass.__init__(self)
         self.memProxy = ALProxy("ALMemory")
-        self.securityDistance = float(self.memProxy.getData("WandererSecurityDistance"))
+        # this may not have been set at the time the box is loaded
+        self.securityDistance = None
         self.leftBumper = False
         self.rightBumper = False
         self.leftSonar = -1
@@ -5821,14 +5828,14 @@ class MyClass(GeneratedClass):
 
     def onInput_onSonarLeftDetected(self, p):
         self.leftSonar = float(p)
-        if self.leftSonar <= self.securityDistance:
-            self.log("Left sonar "+self.leftSonar+" within security distance "+self.securityDistance)
+        if self.leftSonar <= self.get_security_distance():
+            self.log("Left sonar "+str(self.leftSonar)+" within security distance "+str(self.get_security_distance()))
             self.triggerEvent("LeftSonar")
 
     def onInput_onSonarRightDetected(self, p):
         self.rightSonar = float(p)
-        if self.rightSonar <= self.securityDistance:
-            self.log("Right sonar "+self.rightSonar+" within security distance "+self.securityDistance)
+        if self.rightSonar <= self.get_security_distance():
+            self.log("Right sonar "+str(self.rightSonar)+" within security distance "+str(self.get_security_distance()))
             self.triggerEvent("RightSonar")
 
     def onInput_onBumperLeft(self, p):
@@ -5857,7 +5864,12 @@ class MyClass(GeneratedClass):
         event = ObstacleDetected(source, values)
         self.memProxy.insertData("WandererEvent", event)
         self.log("Storing ObstacleDetected event")      
-        self.onStopped()]]>
+        self.onStopped()
+    
+    def get_security_distance(self):
+        if self.securityDistance is None:
+            self.securityDistance = float(self.memProxy.getData("WandererSecurityDistance"))
+        return self.securityDistance]]>
 </content>
                                                                                         </script>
                                                                                         <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
@@ -5891,6 +5903,44 @@ class MyClass(GeneratedClass):
                                                             <Diagram />
                                                         </BehaviorKeyframe>
                                                     </BehaviorLayer>
+                                                    <ActuatorList model="Nao">
+                                                        <ActuatorCurve name="value" actuator="LAnklePitch" recordable="0" mute="0" unit="0">
+                                                            <Key frame="25" value="3.79112" />
+                                                        </ActuatorCurve>
+                                                        <ActuatorCurve name="value" actuator="LAnkleRoll" recordable="0" mute="0" unit="0">
+                                                            <Key frame="25" value="-6.08628" />
+                                                        </ActuatorCurve>
+                                                        <ActuatorCurve name="value" actuator="LHipPitch" recordable="0" mute="0" unit="0">
+                                                            <Key frame="25" value="11.3114" />
+                                                        </ActuatorCurve>
+                                                        <ActuatorCurve name="value" actuator="LHipRoll" recordable="0" mute="0" unit="0">
+                                                            <Key frame="25" value="6.35112" />
+                                                        </ActuatorCurve>
+                                                        <ActuatorCurve name="value" actuator="LHipYawPitch" recordable="0" mute="0" unit="0">
+                                                            <Key frame="25" value="-9.13062" />
+                                                        </ActuatorCurve>
+                                                        <ActuatorCurve name="value" actuator="LKneePitch" recordable="0" mute="0" unit="0">
+                                                            <Key frame="25" value="-4.71999" />
+                                                        </ActuatorCurve>
+                                                        <ActuatorCurve name="value" actuator="RAnklePitch" recordable="0" mute="0" unit="0">
+                                                            <Key frame="25" value="3.36102" />
+                                                        </ActuatorCurve>
+                                                        <ActuatorCurve name="value" actuator="RAnkleRoll" recordable="0" mute="0" unit="0">
+                                                            <Key frame="25" value="3.7426" />
+                                                        </ActuatorCurve>
+                                                        <ActuatorCurve name="value" actuator="RHipPitch" recordable="0" mute="0" unit="0">
+                                                            <Key frame="25" value="10.4368" />
+                                                        </ActuatorCurve>
+                                                        <ActuatorCurve name="value" actuator="RHipRoll" recordable="0" mute="0" unit="0">
+                                                            <Key frame="25" value="-3.82477" />
+                                                        </ActuatorCurve>
+                                                        <ActuatorCurve name="value" actuator="RHipYawPitch" recordable="0" mute="0" unit="0">
+                                                            <Key frame="25" value="-9.13062" />
+                                                        </ActuatorCurve>
+                                                        <ActuatorCurve name="value" actuator="RKneePitch" recordable="0" mute="0" unit="0">
+                                                            <Key frame="25" value="-3.75747" />
+                                                        </ActuatorCurve>
+                                                    </ActuatorList>
                                                 </Timeline>
                                             </Box>
                                             <Box name="Log" id="14" tooltip="Enter tooltip here" x="63" y="157">

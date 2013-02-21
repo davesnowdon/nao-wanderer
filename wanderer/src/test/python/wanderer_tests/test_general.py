@@ -94,5 +94,12 @@ class TestJson(unittest.TestCase):
         self.assertTrue(isinstance(rev, ev.__class__))
         self.assertEqual(ev, rev, "Reconstituted object "+repr(rev)+" must equal original "+repr(ev))
 
+    def test_empty_string(self):
+        self.assertIsNone(from_json_string(""), "Empty string should return None")
+
+    def test_none(self):
+        self.assertIsNone(from_json_string(None), "None should return None")
+
+
 if __name__ == '__main__':
     unittest.main()

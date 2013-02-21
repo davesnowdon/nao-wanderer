@@ -11,19 +11,29 @@ class MockBox(object):
         super(MockBox, self).__init__()
 
     def log(self, msg):
-        pass
+        print msg
 
 class MockMemory(object):
     def __init__(self):
         super(MockMemory, self).__init__()
+        self.values = { }
 
     def getData(self, name):
-        return None
+        try:
+            return self.values[name]
+        except KeyError:
+            return None
     
     def insertData(self, name, value):
-        pass
+        self.values[name] = value
 
+class MockMotion(object):
+    def __init__(self):
+        super(MockMotion, self).__init__()
+    def getPosition(self, thing, frame, useSensors):
+        return [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        
 def make_mock_proxies():
     return Proxies(MockMemory(), 
-                   None, 
+                   MockMotion(), 
                    None)
