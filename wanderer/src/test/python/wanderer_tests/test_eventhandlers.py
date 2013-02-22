@@ -11,7 +11,7 @@ import unittest
 from wanderer.randomwalk import *
 from wanderer.event import *
 
-from mock import MockBox, make_mock_proxies
+from mock import MockBox, make_mock_environment
 
 class Test(unittest.TestCase):
 
@@ -23,18 +23,18 @@ class Test(unittest.TestCase):
         pass
     
     def test_dispatch(self):
-        wanderer = RandomWalk(MockBox(), make_mock_proxies())
+        wanderer = RandomWalk(make_mock_environment())
         event = ObstacleDetected('LeftBumper', {'LeftBumper':True})
         wanderer.dispatch(event, None)
 
     def test_startReturnsActions(self):
-        wanderer = RandomWalk(MockBox(), make_mock_proxies())
+        wanderer = RandomWalk(make_mock_environment())
         actions = wanderer.dispatch(Start(), None)
         self.assertIsNotNone(actions, "dispatch has failed to return an initial action")
         self.assertTrue(len(actions) > 0, "dispatch has returned an empty list of actions")
 
     def test_Bump(self):
-        wanderer = RandomWalk(MockBox(), make_mock_proxies())
+        wanderer = RandomWalk(make_mock_environment())
         actions = wanderer.dispatch(ObstacleDetected('LeftBumper', {'LeftBumper':True}), None)
         self.assertTrue(actions[0].distance < 0, "backoff after a bump")
         # TODO: sensibly test this

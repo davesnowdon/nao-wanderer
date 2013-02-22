@@ -3727,20 +3727,20 @@ class MyClass(GeneratedClass):
 
     def onInput_onStart(self, p):
         try:
-            from util.naoutil import make_proxies
+            from util.naoutil import make_environment
             import wanderer.wanderer as wanderer
         except:
             import sys
             sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")
-            from util.naoutil import make_proxies
+            from util.naoutil import make_environment
             import wanderer.wanderer as wanderer        
         
-        proxies = make_proxies()
+        env = make_environment(self)
         #pos = motionProxy.getRobotPosition(True)
         # 1 = FRAME_WORLD
-        pos = proxies.motion.getPosition("Head", 1, True)        
+        pos = env.motion.getPosition("Head", 1, True)        
         
-        wanderer.init_state(self, proxies, pos)
+        wanderer.init_state(env, pos)
              
         self.onStopped()
 
@@ -3939,21 +3939,21 @@ class MyClass(GeneratedClass):
 
     def onInput_onStart(self):
         try:
-            from util.naoutil import make_proxies
+            from util.naoutil import make_environment
             from wanderer.wanderer import save_event            
             from wanderer.event import Start
         except:
             import sys
             sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")
-            from util.naoutil import make_proxies
+            from util.naoutil import make_environment
             from wanderer.wanderer import save_event            
             from wanderer.event import Start
         
-        self.proxies = make_proxies()        
-        sd = self.proxies.memory.getData("WandererSecurityDistance")
+        self.env = make_environment(self)        
+        sd = self.env.memory.getData("WandererSecurityDistance")
         startEvent = Start()        
-        self.log("Storing Start event: "+repr(startEvent))
-        save_event(self.proxies, startEvent)
+        self.env.log("Storing Start event: "+repr(startEvent))
+        save_event(self.env, startEvent)
         
         self.onStopped()
 
@@ -4009,22 +4009,22 @@ class MyClass(GeneratedClass):
     def onInput_onStart(self):
         self.log("Create plan")
         try:
-            from util.naoutil import make_proxies
+            from util.naoutil import make_environment
             from wanderer.wanderer import *
             from wanderer.event import *
             from wanderer.randomwalk import RandomWalk
         except:
             import sys
             sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")
-            from util.naoutil import make_proxies
+            from util.naoutil import make_environment
             from wanderer.wanderer import *
             from wanderer.event import *
             from wanderer.randomwalk import RandomWalk
         
-        self.proxies = make_proxies() 
-        event = load_event(self.proxies)
-        self.log("Event = "+str(event))
-        wanderer = RandomWalk(self, self.proxies)
+        self.env = make_environment(self) 
+        event = load_event(self.env)
+        self.env.log("Event = "+str(event))
+        wanderer = RandomWalk(self.env)
         wanderer.handleEvent(event, None)
         self.onStopped()]]>
 </content>
@@ -4050,12 +4050,12 @@ class MyClass(GeneratedClass):
 
     def onLoad(self):
         try:
-            from util.naoutil import make_proxies
+            from util.naoutil import make_environment
         except:
             import sys
             sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")         
-            from util.naoutil import make_proxies
-        self.proxies = make_proxies()
+            from util.naoutil import make_environment
+        self.env = make_environment(self)
 
     def onUnload(self):
         pass
@@ -4068,11 +4068,11 @@ class MyClass(GeneratedClass):
         self.onUnload() 
 
     def onInput_onActionCompleted(self):
-        self.log("action completed, next action")
+        self.env.log("action completed, next action")
         self.perform_next_action()
         
     def perform_next_action(self):
-        self.log("perform_next_action")
+        self.env.log("perform_next_action")
         self.dump_plan_memory()
         try:
             from wanderer.wanderer import *
@@ -4081,14 +4081,14 @@ class MyClass(GeneratedClass):
             sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")         
             from wanderer.wanderer import *
 
-        executor = PlanExecutor(self, self.proxies, self)
+        executor = PlanExecutor(self.env, self)
         executor.perform_next_action()
-        self.log("after perform next action")
+        self.env.log("after perform next action")
         self.dump_plan_memory()       
     
     # the executor delegates actually doing an action to this method
     def do_action(self, action):
-        self.log("do_action: "+action.name())
+        self.env.log("do_action: "+action.name())
         try:
             from wanderer.wanderer import *
             from wanderer.action import *
@@ -4101,7 +4101,7 @@ class MyClass(GeneratedClass):
         try:
             # if the action contains an implementation then use that
             method = getattr(self, "execute")
-            method(self, self.proxies)
+            method(self.env)
             self.perform_next_action()
         except AttributeError:
                 # this is ugly but most of these actions are awkward to 
@@ -4126,13 +4126,13 @@ class MyClass(GeneratedClass):
                 self.onWait(action.delaySeconds)
         
     def all_done(self):
-        self.log("all done")  
+        self.env.log("all done")  
         self.onStopped()
         
     def dump_plan_memory(self):
-        self.log("Planned actions = "+str(self.proxies.memory.getData("WandererActionsPlanned")))
-        self.log("Current action = "+str(self.proxies.memory.getData("WandererActionsInProgress")))
-        self.log("Completed = "+str(self.proxies.memory.getData("WandererActionsCompleted")))]]>
+        self.env.log("Planned actions = "+str(self.env.memory.getData("WandererActionsPlanned")))
+        self.env.log("Current action = "+str(self.env.memory.getData("WandererActionsInProgress")))
+        self.env.log("Completed = "+str(self.env.memory.getData("WandererActionsCompleted")))]]>
 </content>
                                                                     </script>
                                                                     <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
@@ -5337,13 +5337,20 @@ class MyClass(GeneratedClass):
 
     def onInput_onStart(self, p):
         try:
+            from util.naoutil import make_environment
+            from wanderer.wanderer import save_event
             from wanderer.event import FaceDetected
         except:
             import sys
-            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")         
+            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")
+            from util.naoutil import make_environment
+            from wanderer.wanderer import save_event
             from wanderer.event import FaceDetected
-        self.memProxy.insertData("WandererEvent", FaceDetected(p))
-        self.log("Storing FaceDetected event")               
+        
+        self.env = make_environment(self)
+        event = FaceDetected(p)
+        self.env.log("Storing FaceDetected event: "+repr(event))
+        save_event(self.env, event)              
         self.onStopped()
 
     def onInput_onStop(self):
@@ -5816,7 +5823,6 @@ class MyClass(GeneratedClass):
                                                                                                 <![CDATA[class MyClass(GeneratedClass):
     def __init__(self):
         GeneratedClass.__init__(self)
-        self.memProxy = ALProxy("ALMemory")
         # this may not have been set at the time the box is loaded
         self.securityDistance = None
         self.leftBumper = False
@@ -5825,8 +5831,13 @@ class MyClass(GeneratedClass):
         self.rightSonar = -1
 
     def onLoad(self):
-        #~ puts code for box initialization here
-        pass
+        try:
+            from util.naoutil import make_environment
+        except:
+            import sys
+            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")         
+            from util.naoutil import make_environment
+        self.env = make_environment(self)
 
     def onUnload(self):
         #~ puts code for box cleanup here
@@ -5843,46 +5854,49 @@ class MyClass(GeneratedClass):
     def onInput_onSonarLeftDetected(self, p):
         self.leftSonar = float(p)
         if self.leftSonar <= self.get_security_distance():
-            self.log("Left sonar "+str(self.leftSonar)+" within security distance "+str(self.get_security_distance()))
+            self.env.log("Left sonar "+str(self.leftSonar)+" within security distance "+str(self.get_security_distance()))
             self.triggerEvent("LeftSonar")
 
     def onInput_onSonarRightDetected(self, p):
         self.rightSonar = float(p)
         if self.rightSonar <= self.get_security_distance():
-            self.log("Right sonar "+str(self.rightSonar)+" within security distance "+str(self.get_security_distance()))
+            self.env.log("Right sonar "+str(self.rightSonar)+" within security distance "+str(self.get_security_distance()))
             self.triggerEvent("RightSonar")
 
     def onInput_onBumperLeft(self, p):
         self.leftBumper = p > 0
         if self.leftBumper:
-            self.log("left bumper pressed")
+            self.env.log("left bumper pressed")
             self.triggerEvent("LeftBumper")
 
     def onInput_onBumperRight(self, p):
         self.rightBumper = p > 0
         if self.rightBumper:
-            self.log("right bumper pressed")
+            self.env.log("right bumper pressed")
             self.triggerEvent("RightBumper")
         
     def triggerEvent(self, source):
         try:
+            from wanderer.wanderer import save_event
             from wanderer.event import ObstacleDetected
         except:
             import sys
-            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")         
+            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")
+            from wanderer.wanderer import save_event 
             from wanderer.event import ObstacleDetected
+            
         values = {  'LeftBumper' : self.leftBumper, 
                     'RightBumper' : self.rightBumper, 
                     'LeftSonar' : self.leftSonar, 
                     'RightSonar' : self.rightSonar }
         event = ObstacleDetected(source, values)
-        self.memProxy.insertData("WandererEvent", event)
-        self.log("Storing ObstacleDetected event")      
+        self.env.log("Storing ObstacleDetected event "+repr(event))  
+        save_event(self.env, event)    
         self.onStopped()
     
     def get_security_distance(self):
         if self.securityDistance is None:
-            self.securityDistance = float(self.memProxy.getData("WandererSecurityDistance"))
+            self.securityDistance = float(self.env.memory.getData("WandererSecurityDistance"))
         return self.securityDistance]]>
 </content>
                                                                                         </script>

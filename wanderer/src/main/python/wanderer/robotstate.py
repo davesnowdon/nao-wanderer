@@ -46,16 +46,16 @@ class Sensors(object):
 Information about motor state, such as current draw
 '''
 class Motors(object):
-    def __init__(self, proxies):
+    def __init__(self, env):
         super(Motors, self).__init__()
 
 '''
 Information about robot joint angles
 '''
 class Joints(object):
-    def __init__(self, proxies):
+    def __init__(self, env):
         super(Joints, self).__init__()
-        self.motionProxy = proxies.motion
+        self.motionProxy = env.motion
     
     def get_joint(self, name):
         return self.joints[name]

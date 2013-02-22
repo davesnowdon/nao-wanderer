@@ -12,7 +12,7 @@ from util.general import object_to_json
 Abstract class for all actions.
 Many actions will be implemented using choreographe boxes and should NOT
 implement an execute method, actions that can be performed in pure python
-SHOULD implement a method execute(caller, proxies)
+SHOULD implement a method execute(environment)
 '''
 class Action(object):
     def __init__(self):

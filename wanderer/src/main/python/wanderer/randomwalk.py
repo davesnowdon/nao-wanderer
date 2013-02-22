@@ -14,8 +14,8 @@ from wanderer import Planner
 
 class RandomWalk(Planner):
 
-    def __init__(self, caller, proxies):
-        super(RandomWalk, self).__init__(caller, proxies)
+    def __init__(self, env):
+        super(RandomWalk, self).__init__(env)
         self.rng = Random()
 
     def handleObstacleDetected(self, event, state):
@@ -25,7 +25,7 @@ class RandomWalk(Planner):
             plan = []
         (tmin, tmax) = event_to_obstruction_direction(event)
         turn = self.rng.uniform(tmin, tmax)
-        self.caller.log("Random turn value = "+str(turn)+" from ("+str(tmin)+", "+str(tmax)+")")
+        self.env.log("Random turn value = "+str(turn)+" from ("+str(tmin)+", "+str(tmax)+")")
         plan.append(Turn(turn))
         plan.append(WalkForwardsIndefinitely())
         return plan

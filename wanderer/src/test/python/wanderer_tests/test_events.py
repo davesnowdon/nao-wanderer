@@ -3,14 +3,11 @@ Created on Feb 18, 2013
 
 @author: dsnowdon
 '''
-import inspect
-import os
+
 import unittest
 
 from util.general import to_json_string, from_json_string, object_to_name
 from wanderer.event import *
-
-from mock import MockBox, make_mock_proxies
 
 class Test(unittest.TestCase):
     def test_start_json(self):

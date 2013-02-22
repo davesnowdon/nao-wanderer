@@ -4,7 +4,7 @@ Created on Feb 11, 2013
 @author: dsnowdon
 '''
 
-from util.naoutil import Proxies
+from util.naoutil import NaoEnvironment
 
 class MockBox(object):
     def __init__(self):
@@ -33,7 +33,8 @@ class MockMotion(object):
     def getPosition(self, thing, frame, useSensors):
         return [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         
-def make_mock_proxies():
-    return Proxies(MockMemory(), 
-                   MockMotion(), 
-                   None)
+def make_mock_environment():
+    return NaoEnvironment(MockBox(),
+                          MockMemory(), 
+                          MockMotion(), 
+                          None)

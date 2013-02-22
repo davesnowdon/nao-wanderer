@@ -11,12 +11,12 @@ class MyClass(GeneratedClass):
     def __init__(self):
         GeneratedClass.__init__(self)
         try:
-            from util.naoutil import make_proxies
+            from util.naoutil import make_environment
         except:
             import sys
             sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")         
-            from util.naoutil import make_proxies
-        self.proxies = make_proxies()
+            from util.naoutil import make_environment
+        self.env = make_environment(self)
 
     def onLoad(self):
         # attributes needed in shuffle mode
@@ -46,6 +46,6 @@ class MyClass(GeneratedClass):
             from util.naoutil import *  
         
        
-        event = load_event(self.proxies)
-        wanderer = RandomWalk(self, self.proxies)
+        event = load_event(self.env)
+        wanderer = RandomWalk(self, self.env)
         wanderer.handleEvent(event, None)

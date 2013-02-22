@@ -6,7 +6,7 @@ Created on Feb 20, 2013
 import math
 import unittest
 
-from mock import MockBox, make_mock_proxies
+from mock import make_mock_environment
 
 from wanderer.wanderer import PlanExecutor, save_plan, load_plan
 from wanderer.action import *
@@ -20,16 +20,16 @@ class MockActionExecutor(object):
 
 class TestExecutor(unittest.TestCase):
     def test_no_plan(self):
-        executor = PlanExecutor(MockBox(), make_mock_proxies(), MockActionExecutor())
+        executor = PlanExecutor(make_mock_environment(), MockActionExecutor())
         executor.perform_next_action()
 
     
     def test_start_plan(self):
         plan = [Turn(math.pi), WalkForwardsIndefinitely()]
-        proxies = make_mock_proxies()
-        save_plan(proxies, plan)
-        print "Stored plan = "+repr(load_plan(proxies))
-        executor = PlanExecutor(MockBox(), proxies, MockActionExecutor())
+        env = make_mock_environment()
+        save_plan(env, plan)
+        print "Stored plan = "+repr(load_plan(env))
+        executor = PlanExecutor(env, MockActionExecutor())
         executor.perform_next_action()
         executor.perform_next_action()
         executor.perform_next_action()
