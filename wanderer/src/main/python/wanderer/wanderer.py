@@ -42,9 +42,9 @@ def init_state(caller, proxies, startPos):
     proxies.memory.insertData(MEM_WALK_PATH, [startPos])
 
     # current actions and completed actions
-    proxies.memory.insertData(MEM_PLANNED_ACTIONS, [])
-    proxies.memory.insertData(MEM_CURRENT_ACTIONS, NullAction())
-    proxies.memory.insertData(MEM_COMPLETED_ACTIONS, [])
+    proxies.memory.insertData(MEM_PLANNED_ACTIONS, "")
+    proxies.memory.insertData(MEM_CURRENT_ACTIONS, "")
+    proxies.memory.insertData(MEM_COMPLETED_ACTIONS, "")
 
 
 '''
@@ -117,6 +117,7 @@ class PlanExecutor(object):
     # get current and previous positions and call have_moved
     # it's not intended that this method be overridden
     def _have_moved_wrapper(self):
+        self.caller.log("Have moved")
         pos = get_position(self.caller, self.proxies)
         lastPos = get_last_position(self.caller, self.proxies)
         self.have_moved(lastPos, pos)

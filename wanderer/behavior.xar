@@ -4073,22 +4073,31 @@ class MyClass(GeneratedClass):
         
     def perform_next_action(self):
         self.log("perform_next_action")
+        self.dump_plan_memory()
         try:
             from wanderer.wanderer import *
-            from wanderer.event import *
         except:
             import sys
             sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")         
             from wanderer.wanderer import *
-            from wanderer.event import *
 
         executor = PlanExecutor(self, self.proxies, self)
         executor.perform_next_action()
-        self.log("after perform next action")       
+        self.log("after perform next action")
+        self.dump_plan_memory()       
     
     # the executor delegates actually doing an action to this method
     def do_action(self, action):
         self.log("do_action: "+action.name())
+        try:
+            from wanderer.wanderer import *
+            from wanderer.action import *
+        except:
+            import sys
+            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")         
+            from wanderer.wanderer import *
+            from wanderer.action import *
+
         try:
             # if the action contains an implementation then use that
             method = getattr(self, "execute")
@@ -4103,7 +4112,7 @@ class MyClass(GeneratedClass):
             elif isinstance(action, WalkStraight):
                 self.onWalk(action.distance)
             elif isinstance(action, WalkForwardsIndefinitely):
-                self.onContinuousWalk(action.distance)
+                self.onContinuousWalk()
             elif isinstance(action, Turn):
                 self.onTurn(action.direction)
             elif isinstance(action, Point):
@@ -4118,7 +4127,12 @@ class MyClass(GeneratedClass):
         
     def all_done(self):
         self.log("all done")  
-        self.onStopped()]]>
+        self.onStopped()
+        
+    def dump_plan_memory(self):
+        self.log("Planned actions = "+str(self.proxies.memory.getData("WandererActionsPlanned")))
+        self.log("Current action = "+str(self.proxies.memory.getData("WandererActionsInProgress")))
+        self.log("Completed = "+str(self.proxies.memory.getData("WandererActionsCompleted")))]]>
 </content>
                                                                     </script>
                                                                     <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
