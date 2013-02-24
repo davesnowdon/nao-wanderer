@@ -38,3 +38,17 @@ def make_mock_environment():
                           MockMemory(), 
                           MockMotion(), 
                           None)
+
+class MockActionExecutor(object):
+    def __init__(self):
+        super(MockActionExecutor, self).__init__()
+        self.allDoneCount = 0
+        self.actions = []
+    
+    def do_action(self, action):
+        self.actions.append(action)
+        print "MockActionExecutor.do_action() : "+repr(action)
+    
+    def all_done(self):
+        self.allDoneCount = self.allDoneCount + 1
+        print "MockActionExecutor.all_done()"
