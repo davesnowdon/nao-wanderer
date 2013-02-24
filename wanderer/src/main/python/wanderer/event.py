@@ -20,7 +20,7 @@ class Event(object):
 
     # used to support JSON serialisation of custom classes
     def to_json(self):
-        return object_to_json(self, None)
+        return { }
 
     # used to enable this class & sub types to be reconstituted from JSON
     @classmethod
@@ -43,8 +43,8 @@ class ObstacleDetected(Event):
         return self.source == 'LeftBumper' or self.source == 'RightBumper'
 
     def to_json(self):
-        return object_to_json(self, { 'source': self.source,
-                                      'sensorData' : self.sensorData.to_map()})
+        return { 'source': self.source,
+                 'sensorData' : self.sensorData.to_map()}
 
     @classmethod
     def from_json(klass, json_object):

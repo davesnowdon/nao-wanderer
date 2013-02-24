@@ -105,7 +105,7 @@ Helper method to generate JSON for custom classes
 def to_json_helper(python_object):
     try:
         method = getattr(python_object, 'to_json')
-        return method()
+        return object_to_json(python_object, method())
     except AttributeError:
         raise TypeError(repr(python_object) + ' is not JSON serializable')
 

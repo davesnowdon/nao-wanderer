@@ -26,7 +26,7 @@ class Action(object):
 
     # used to support JSON serialisation of custom classes
     def to_json(self):
-        return object_to_json(self, None)
+        return { }
 
     # used to enable this class & sub types to be reconstituted from JSON
     @classmethod
@@ -53,7 +53,7 @@ class WalkStraight(Move):
         self.distance = distance
 
     def to_json(self):
-        return object_to_json(self, { 'distance': self.distance })
+        return { 'distance': self.distance }
 
     @classmethod
     def from_json(klass, json_object):
@@ -66,7 +66,7 @@ class WalkSideways(Move):
         self.distance = distance
 
     def to_json(self):
-        return object_to_json(self, { 'distance': self.distance })
+        return { 'distance': self.distance }
 
     @classmethod
     def from_json(klass, json_object):
@@ -79,7 +79,7 @@ class Turn(Move):
         self.direction = direction
 
     def to_json(self):
-        return object_to_json(self, { 'direction': self.direction })
+        return { 'direction': self.direction }
 
     @classmethod
     def from_json(klass, json_object):
@@ -95,7 +95,7 @@ class Point(Action):
         self.y = y
 
     def to_json(self):
-        return object_to_json(self, { 'x': self.x, 'y' : self.y })
+        return { 'x': self.x, 'y' : self.y }
 
     @classmethod
     def from_json(klass, json_object):
@@ -119,7 +119,7 @@ class Say(Action):
         self.textKey = textKey
 
     def to_json(self):
-        return object_to_json(self, { 'textKey': self.textKey })
+        return { 'textKey': self.textKey }
 
     @classmethod
     def from_json(klass, json_object):
@@ -135,7 +135,7 @@ class Wait(Action):
         self.delaySeconds = delaySeconds
 
     def to_json(self):
-        return object_to_json(self, { 'delaySeconds': self.delaySeconds })
+        return { 'delaySeconds': self.delaySeconds }
 
     @classmethod
     def from_json(klass, json_object):
