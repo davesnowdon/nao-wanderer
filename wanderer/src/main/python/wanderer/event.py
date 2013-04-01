@@ -5,7 +5,7 @@ Created on Feb 4, 2013
 
 Representations of events that can occur
 '''
-from util.general import object_to_json
+from naoutil.jsonobj import object_to_json
 from robotstate import Sensors
 
 class Event(object):
@@ -16,7 +16,7 @@ class Event(object):
         return self.__class__.__name__
 
     def __eq__(self, other):
-        return self.__dict__ == other.__dict__
+        return self.name() == other.name() and  self.__dict__ == other.__dict__
 
     # used to support JSON serialisation of custom classes
     def to_json(self):

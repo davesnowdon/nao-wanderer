@@ -4,7 +4,7 @@ Created on Jan 19, 2013
 @author: dsnowdon
 '''
 
-from util.general import to_json_string, from_json_string
+from naoutil.jsonobj import to_json_string, from_json_string
 
 import robotstate
 from event import *

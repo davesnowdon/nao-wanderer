@@ -6,7 +6,8 @@ Created on Feb 18, 2013
 
 import unittest
 
-from util.general import to_json_string, from_json_string, object_to_name
+from naoutil.general import object_to_name
+from naoutil.jsonobj import to_json_string, from_json_string
 from wanderer.event import *
 
 class Test(unittest.TestCase):

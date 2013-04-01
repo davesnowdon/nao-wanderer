@@ -4,7 +4,7 @@ Created on Feb 11, 2013
 @author: dsnowdon
 '''
 
-from util.naoutil import NaoEnvironment
+from naoutil.naoenv import NaoEnvironment
 
 class MockBox(object):
     def __init__(self):

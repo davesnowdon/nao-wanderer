@@ -6,7 +6,7 @@ Created on Feb 8, 2013
 import math
 from random import Random
 
-from util.general import class_to_name
+from naoutil.general import class_to_name
 from util.mathutil import to_radians
 from event import *
 from action import *

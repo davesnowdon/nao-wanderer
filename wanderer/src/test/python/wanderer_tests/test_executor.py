@@ -30,8 +30,9 @@ class TestExecutor(unittest.TestCase):
         executor.perform_next_action()
         executor.perform_next_action()
         executor.perform_next_action()
+        print "Executed actions = "+repr(actionExecutor.actions)
         self.assertEqual(1, actionExecutor.allDoneCount, "all_done() should have been called once")
-        self.assertItemsEqual(plan, actionExecutor.actions, "Executed actions should match plan")
+        self.assertEqual(plan, actionExecutor.actions, "Executed actions should match plan")
         
 
 if __name__ == '__main__':

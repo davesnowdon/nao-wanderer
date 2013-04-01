@@ -6,7 +6,7 @@ Created on Feb 4, 2013
 Representations of actions the robot can take
 '''
 
-from util.general import object_to_json
+from naoutil.jsonobj import object_to_json
 
 '''
 Abstract class for all actions.
@@ -22,7 +22,7 @@ class Action(object):
         return self.__class__.__name__
 
     def __eq__(self, other):
-        return self.__dict__ == other.__dict__
+        return self.name() == other.name() and  self.__dict__ == other.__dict__
 
     # used to support JSON serialisation of custom classes
     def to_json(self):
