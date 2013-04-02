@@ -59,7 +59,7 @@
                                                 <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
                                                 <Input name="onStop" type="1" type_size="1" nature="1" inner="0" tooltip="Parent timeline stops when a signal is received on this input." id="2" />
                                             </Box>
-                                            <Box name="gotoMain" id="2" tooltip="Jump to a given frame (edit parameters to modify it) and stop the timeline parent at this index. Note that all the behavior keyframes will be loaded, and therefore the event logic will still be running." x="683" y="9">
+                                            <Box name="gotoMain" id="2" tooltip="Jump to a given frame (edit parameters to modify it) and stop the timeline parent at this index. Note that all the behavior keyframes will be loaded, and therefore the event logic will still be running." x="599" y="19">
                                                 <bitmap>media/images/box/box-timeLine.png</bitmap>
                                                 <script language="4">
                                                     <content>
@@ -83,7 +83,7 @@
                                                 <Input name="onStart" type="1" type_size="1" nature="2" inner="0" tooltip="Parent timeline gotoAndStop when a signal is received on this input." id="2" />
                                                 <Parameter name="frame name" inherits_from_parent="0" content_type="3" value="Main" default_value="" custom_choice="0" tooltip="" id="3" />
                                             </Box>
-                                            <Box name="Stand" id="4" tooltip='Robot will go to the position &quot;Stand&#x0A;Position description : Standing position with low power consumption. &#x0A;' x="385" y="21">
+                                            <Box name="Stand" id="4" tooltip='Robot will go to the position &quot;Stand&#x0A;Position description : Standing position with low power consumption. &#x0A;' x="449" y="18">
                                                 <bitmap>media/images/positions/Stand.png</bitmap>
                                                 <script language="4">
                                                     <content>
@@ -200,7 +200,7 @@
                                                 <Resource name="RAnklePitch" type="Lock" timeout="2" />
                                                 <Resource name="RAnkleRoll" type="Lock" timeout="2" />
                                             </Box>
-                                            <Box name="Stand Up" id="1" tooltip="NAO tries to stand up from any position for a number of tries.&#x0A;&#x0A;Note: The number of tries can be set in parameters." x="315" y="163">
+                                            <Box name="Stand Up" id="1" tooltip="NAO tries to stand up from any position for a number of tries.&#x0A;&#x0A;Note: The number of tries can be set in parameters." x="418" y="167">
                                                 <bitmap>media/images/box/movement/stand.png</bitmap>
                                                 <script language="4">
                                                     <content>
@@ -3626,7 +3626,7 @@ class MyClass(GeneratedClass):
                                                 </Timeline>
                                                 <Resource name="All motors" type="Lock" timeout="0" />
                                             </Box>
-                                            <Box name="Set Stiffness" id="7" tooltip="Stiffen the motors selected in parameters." x="151" y="165">
+                                            <Box name="Set Stiffness" id="7" tooltip="Stiffen the motors selected in parameters." x="266" y="171">
                                                 <bitmap>media/images/box/movement/stiffness.png</bitmap>
                                                 <script language="4">
                                                     <content>
@@ -3709,7 +3709,7 @@ class MyClass(GeneratedClass):
                                                 <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
                                                 <Parameter name="log" inherits_from_parent="0" content_type="3" value="Init" default_value="" custom_choice="0" tooltip="" id="5" />
                                             </Box>
-                                            <Box name="InitState" id="9" tooltip="Enter tooltip here" x="525" y="20">
+                                            <Box name="InitState" id="9" tooltip="Enter tooltip here" x="133" y="165">
                                                 <bitmap>media/images/box/box-diagram.png</bitmap>
                                                 <script language="4">
                                                     <content>
@@ -3726,17 +3726,9 @@ class MyClass(GeneratedClass):
         pass
 
     def onInput_onStart(self, p):
-        try:
-            from util.naoutil import make_environment
-            import wanderer.wanderer as wanderer
-        except:
-            import sys
-            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")
-            from util.naoutil import make_environment
-            import wanderer.wanderer as wanderer        
-        
-        env = make_environment(self)
-        #pos = motionProxy.getRobotPosition(True)
+        self.do_imports()
+               
+        env = naoenv.make_environment(self)
         # 1 = FRAME_WORLD
         pos = env.motion.getPosition("Head", 1, True)        
         
@@ -3745,7 +3737,29 @@ class MyClass(GeneratedClass):
         self.onStopped()
 
     def onInput_onStop(self):
-        self.onUnload() #~ it is recommanded to call onUnload of this box in a onStop method, as the code written in onUnload is used to stop the box as well]]>
+        self.onUnload() #~ it is recommanded to call onUnload of this box in a onStop method, as the code written in onUnload is used to stop the box as well
+    
+    '''
+    Import the external python now so we don't have to separately import it in
+    every choreographe box that uses one of the external modules. Doing it this
+    way also ensures that if paths change only this box needs to be updated.
+    '''
+    def do_imports(self):
+        ext_path = ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python"
+        self.log("Importing external python at "+ext_path)
+        pythonbridge = ALProxy("ALPythonBridge")
+        pythonbridge.evalFull("import sys; sys.path.append('" + ext_path + "')")
+        pythonbridge.evalFull("import naoutil.naoenv as naoenv")
+        pythonbridge.evalFull("import naoutil.i18n as i18n")
+        pythonbridge.evalFull("import naoutil.jprops as jprops")
+        pythonbridge.evalFull("import naoutil.general as general")
+        pythonbridge.evalFull("from naoutil.jsonobj import to_json_string, from_json_string")
+        pythonbridge.evalFull("import wanderer.action as action")
+        pythonbridge.evalFull("import wanderer.event as event")
+        pythonbridge.evalFull("import wanderer.robotstate as robotstate")
+        pythonbridge.evalFull("import wanderer.wanderer as wanderer")
+        pythonbridge.evalFull("from wanderer.randomwalk import RandomWalk")
+        self.log("imports completed")]]>
 </content>
                                                 </script>
                                                 <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
@@ -3757,10 +3771,10 @@ class MyClass(GeneratedClass):
                                             <Link inputowner="4" indexofinput="2" outputowner="1" indexofoutput="4" />
                                             <Link inputowner="0" indexofinput="4" outputowner="1" indexofoutput="5" />
                                             <Link inputowner="1" indexofinput="2" outputowner="7" indexofoutput="3" />
-                                            <Link inputowner="7" indexofinput="2" outputowner="0" indexofoutput="1" />
                                             <Link inputowner="8" indexofinput="2" outputowner="0" indexofoutput="1" />
-                                            <Link inputowner="9" indexofinput="2" outputowner="4" indexofoutput="4" />
-                                            <Link inputowner="2" indexofinput="2" outputowner="9" indexofoutput="4" />
+                                            <Link inputowner="2" indexofinput="2" outputowner="4" indexofoutput="4" />
+                                            <Link inputowner="9" indexofinput="2" outputowner="0" indexofoutput="1" />
+                                            <Link inputowner="7" indexofinput="2" outputowner="9" indexofoutput="4" />
                                         </Diagram>
                                     </BehaviorKeyframe>
                                     <BehaviorKeyframe name="Main" index="8">
@@ -3938,22 +3952,12 @@ class MyClass(GeneratedClass):
         pass
 
     def onInput_onStart(self):
-        try:
-            from util.naoutil import make_environment
-            from wanderer.wanderer import save_event            
-            from wanderer.event import Start
-        except:
-            import sys
-            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")
-            from util.naoutil import make_environment
-            from wanderer.wanderer import save_event            
-            from wanderer.event import Start
-        
-        self.env = make_environment(self)        
+        # imports already done on behaviour init        
+        self.env = naoenv.make_environment(self)        
         sd = self.env.memory.getData("WandererSecurityDistance")
-        startEvent = Start()        
+        startEvent = event.Start()        
         self.env.log("Storing Start event: "+repr(startEvent))
-        save_event(self.env, startEvent)
+        wanderer.save_event(self.env, startEvent)
         
         self.onStopped()
 
@@ -4007,25 +4011,13 @@ class MyClass(GeneratedClass):
         pass
 
     def onInput_onStart(self):
-        self.log("Create plan")
-        try:
-            from util.naoutil import make_environment
-            from wanderer.wanderer import *
-            from wanderer.event import *
-            from wanderer.randomwalk import RandomWalk
-        except:
-            import sys
-            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")
-            from util.naoutil import make_environment
-            from wanderer.wanderer import *
-            from wanderer.event import *
-            from wanderer.randomwalk import RandomWalk
-        
-        self.env = make_environment(self) 
-        event = load_event(self.env)
+        # imports already done on behaviour init
+        self.log("Create plan")        
+        self.env = naoenv.make_environment(self) 
+        event = wanderer.load_event(self.env)
         self.env.log("Event = "+str(event))
-        wanderer = RandomWalk(self.env)
-        wanderer.handleEvent(event, None)
+        planner = RandomWalk(self.env)
+        planner.handleEvent(event, None)
         self.onStopped()]]>
 </content>
                                                                     </script>
@@ -4049,14 +4041,9 @@ class MyClass(GeneratedClass):
         GeneratedClass.__init__(self)
 
     def onLoad(self):
-        try:
-            from util.naoutil import make_environment
-        except:
-            import sys
-            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")         
-            from util.naoutil import make_environment
-        self.env = make_environment(self)
-
+        # imports already done on behaviour init
+        self.env = naoenv.make_environment(self)
+        self.resources_path = ALFrameManager.getBehaviorPath(self.behaviorId) + "/resources"
     def onUnload(self):
         pass
 
@@ -4074,56 +4061,41 @@ class MyClass(GeneratedClass):
     def perform_next_action(self):
         self.env.log("perform_next_action")
         self.dump_plan_memory()
-        try:
-            from wanderer.wanderer import *
-        except:
-            import sys
-            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")         
-            from wanderer.wanderer import *
-
-        executor = PlanExecutor(self.env, self)
+        executor = wanderer.PlanExecutor(self.env, self)
         executor.perform_next_action()
         self.env.log("after perform next action")
         self.dump_plan_memory()       
     
     # the executor delegates actually doing an action to this method
-    def do_action(self, action):
-        self.env.log("do_action: "+action.name())
-        try:
-            from wanderer.wanderer import *
-            from wanderer.action import *
-        except:
-            import sys
-            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")         
-            from wanderer.wanderer import *
-            from wanderer.action import *
-
+    def do_action(self, task):
+        self.env.log("do_action: "+task.name())
         try:
             # if the action contains an implementation then use that
-            method = getattr(self, "execute")
+            method = getattr(task, "execute")
             method(self.env)
             self.perform_next_action()
         except AttributeError:
                 # this is ugly but most of these actions are awkward to 
                 # implement in plain python so we delegate the action to
                 # choreographe boxes which we signal via outputs
-            if isinstance(action, WalkSideways):
-                self.onWalkSideways(action.distance)
-            elif isinstance(action, WalkStraight):
-                self.onWalk(action.distance)
-            elif isinstance(action, WalkForwardsIndefinitely):
+            if isinstance(task, action.WalkSideways):
+                self.onWalkSideways(task.distance)
+            elif isinstance(task, action.WalkStraight):
+                self.onWalk(task.distance)
+            elif isinstance(task, action.WalkForwardsIndefinitely):
                 self.onContinuousWalk()
-            elif isinstance(action, Turn):
-                self.onTurn(action.direction)
-            elif isinstance(action, Point):
-                self.onPoint([action.x, action.y])
-            elif isinstance(action, Wave):
+            elif isinstance(task, action.Turn):
+                self.onTurn(task.direction)
+            elif isinstance(task, action.Point):
+                self.onPoint([task.x, task.y])
+            elif isinstance(task, action.Wave):
                 self.onWave()
-            elif isinstance(action, Say):
-                text = ""
+            elif isinstance(task, action.Say):
+                # use the key to lookup the text for the current language
+                text = self.env.localized_text("defaults", task.textKey)
                 self.onSay(text)
-            elif isinstance(action, Wait):
-                self.onWait(action.delaySeconds)
+            elif isinstance(task, action.Wait):
+                self.onWait(task.delaySeconds)
         
     def all_done(self):
         self.env.log("all done")  
@@ -5336,21 +5308,11 @@ class MyClass(GeneratedClass):
         pass
 
     def onInput_onStart(self, p):
-        try:
-            from util.naoutil import make_environment
-            from wanderer.wanderer import save_event
-            from wanderer.event import FaceDetected
-        except:
-            import sys
-            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")
-            from util.naoutil import make_environment
-            from wanderer.wanderer import save_event
-            from wanderer.event import FaceDetected
-        
-        self.env = make_environment(self)
-        event = FaceDetected(p)
+        # imports already done on behaviour init
+        self.env = naoenv.make_environment(self)
+        event = event.FaceDetected(p)
         self.env.log("Storing FaceDetected event: "+repr(event))
-        save_event(self.env, event)              
+        wanderer.save_event(self.env, event)              
         self.onStopped()
 
     def onInput_onStop(self):
@@ -5831,13 +5793,8 @@ class MyClass(GeneratedClass):
         self.rightSonar = -1
 
     def onLoad(self):
-        try:
-            from util.naoutil import make_environment
-        except:
-            import sys
-            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")         
-            from util.naoutil import make_environment
-        self.env = make_environment(self)
+        # imports already done on behaviour init
+        self.env = naoenv.make_environment(self)
 
     def onUnload(self):
         #~ puts code for box cleanup here
@@ -5876,22 +5833,14 @@ class MyClass(GeneratedClass):
             self.triggerEvent("RightBumper")
         
     def triggerEvent(self, source):
-        try:
-            from wanderer.wanderer import save_event
-            from wanderer.event import ObstacleDetected
-        except:
-            import sys
-            sys.path.append(ALFrameManager.getBehaviorPath(self.behaviorId)+"/src/main/python")
-            from wanderer.wanderer import save_event 
-            from wanderer.event import ObstacleDetected
-            
-        values = {  'LeftBumper' : self.leftBumper, 
-                    'RightBumper' : self.rightBumper, 
-                    'LeftSonar' : self.leftSonar, 
-                    'RightSonar' : self.rightSonar }
-        event = ObstacleDetected(source, values)
-        self.env.log("Storing ObstacleDetected event "+repr(event))  
-        save_event(self.env, event)    
+        # imports already done on behaviour init
+        sensors =  robotstate.Sensors ({ 'LeftBumper' : self.leftBumper, 
+                                        'RightBumper' : self.rightBumper, 
+                                        'LeftSonar' : self.leftSonar, 
+                                        'RightSonar' : self.rightSonar })
+        ev = event.ObstacleDetected(source, sensors)
+        self.env.log("Storing ObstacleDetected event "+repr(ev))  
+        wanderer.save_event(self.env, ev)    
         self.onStopped()
     
     def get_security_distance(self):
