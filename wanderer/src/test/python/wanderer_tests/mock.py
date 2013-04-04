@@ -32,12 +32,18 @@ class MockMotion(object):
         super(MockMotion, self).__init__()
     def getPosition(self, thing, frame, useSensors):
         return [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        
+
+class MockTextToSpeech(object):
+    def __init__(self):
+        super(MockTextToSpeech, self).__init__()
+    def getLanguage(self):
+        return "English"
+
 def make_mock_environment():
     return NaoEnvironment(MockBox(),
-                          MockMemory(), 
-                          MockMotion(), 
-                          None)
+                          { "ALMemory" : MockMemory(), 
+                            "ALMotion" : MockMotion(), 
+                            "ALTextToSpeech" : MockTextToSpeech() })
 
 class MockActionExecutor(object):
     def __init__(self):
