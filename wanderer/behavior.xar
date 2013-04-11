@@ -4016,7 +4016,7 @@ class MyClass(GeneratedClass):
         self.env = naoenv.make_environment(self) 
         event = wanderer.load_event(self.env)
         self.env.log("Event = "+str(event))
-        planner = RandomWalk(self.env)
+        planner = wanderer.get_planner_instance(self.env)
         planner.handleEvent(event, None)
         self.onStopped()]]>
 </content>
@@ -4061,7 +4061,7 @@ class MyClass(GeneratedClass):
     def perform_next_action(self):
         self.env.log("perform_next_action")
         self.dump_plan_memory()
-        executor = wanderer.PlanExecutor(self.env, self)
+        executor = wanderer.get_executor_instance(self.env, self)
         executor.perform_next_action()
         self.env.log("after perform next action")
         self.dump_plan_memory()       

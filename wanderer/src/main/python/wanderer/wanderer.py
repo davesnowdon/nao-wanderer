@@ -5,6 +5,7 @@ Created on Jan 19, 2013
 '''
 
 from naoutil.jsonobj import to_json_string, from_json_string
+from naoutil.general import find_class
 
 import robotstate
 from event import *
@@ -23,9 +24,21 @@ MEM_CURRENT_ACTIONS = "WandererActionsInProgress"
 MEM_COMPLETED_ACTIONS = "WandererActionsCompleted"
 MEM_CURRENT_EVENT = "WandererEvent"
 
+DEFAULT_CONFIG_FILE = "wanderer"
+PROPERTY_PLANNER_CLASS = "plannerClass"
+DEFAULT_PLANNER_CLASS = "wanderer.randomwalk.RandomWalk"
+PROPERTY_EXECUTOR_CLASS = "executorClass"
+DEFAULT_EXECUTOR_CLASS = "wanderer.wanderer.PlanExecutor"
 
 CENTRE_BIAS = False
 HEAD_HORIZONTAL_OFFSET = 0
+
+# START GLOBALS
+# We put instances of planners, executors and mappers here so we don't need to continually create
+# new instances
+planner_instance = None
+executor_instance = None
+# END GLOBALS 
 
 def init_state(env, startPos):
     # getData & removeData throw errors if the value is not set, 
@@ -129,6 +142,36 @@ class PlanExecutor(object):
     def save_position(self):
         pos = get_position(self.env)
         save_waypoint(self.env, pos)
+
+'''
+Get the instance of the planner, creating an instance of the configured class if we don't already
+have a planner instance
+'''
+def get_planner_instance(env):
+    global planner_instance
+    if planner_instance is None:
+        fqcn = env.get_property(DEFAULT_CONFIG_FILE, PROPERTY_PLANNER_CLASS, DEFAULT_PLANNER_CLASS)
+        env.log("Creating a new planner instance of "+fqcn)
+        klass = find_class(fqcn)
+        planner_instance = klass(env)
+    return planner_instance
+
+'''
+Get the instance of the plan executor, creating an instance of the class specified in the configuration
+file if necessary.
+'''
+def get_executor_instance(env, actionExecutor):
+    global executor_instance
+    if executor_instance is None:
+        fqcn = env.get_property(DEFAULT_CONFIG_FILE, PROPERTY_EXECUTOR_CLASS, DEFAULT_EXECUTOR_CLASS)
+        env.log("Creating a new executor instance of "+fqcn)
+        klass = find_class(fqcn)
+        executor_instance = klass(env, actionExecutor)
+    # NOT THREAD SAFE
+    # even if we already had an instance of an executor the choreographe object might have become
+    # stale so we refresh it. We only have one executor instance at once so this should be OK
+    executor_instance.actionExecutor = actionExecutor
+    return executor_instance
 
 def load_event(env):
     return from_json_string(env.memory.getData(MEM_CURRENT_EVENT))
