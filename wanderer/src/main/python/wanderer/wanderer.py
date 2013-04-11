@@ -4,6 +4,9 @@ Created on Jan 19, 2013
 @author: dsnowdon
 '''
 
+import datetime
+import json
+
 from naoutil.jsonobj import to_json_string, from_json_string
 from naoutil.general import find_class
 
@@ -23,12 +26,15 @@ MEM_PLANNED_ACTIONS = "WandererActionsPlanned"
 MEM_CURRENT_ACTIONS = "WandererActionsInProgress"
 MEM_COMPLETED_ACTIONS = "WandererActionsCompleted"
 MEM_CURRENT_EVENT = "WandererEvent"
+MEM_MAP = "WandererMap"
 
 DEFAULT_CONFIG_FILE = "wanderer"
 PROPERTY_PLANNER_CLASS = "plannerClass"
 DEFAULT_PLANNER_CLASS = "wanderer.randomwalk.RandomWalk"
 PROPERTY_EXECUTOR_CLASS = "executorClass"
 DEFAULT_EXECUTOR_CLASS = "wanderer.wanderer.PlanExecutor"
+PROPERTY_MAPPER_CLASS = "mapperClass"
+DEFAULT_MAPPER_CLASS = "wanderer.wanderer.NullMapper"
 
 CENTRE_BIAS = False
 HEAD_HORIZONTAL_OFFSET = 0
@@ -38,6 +44,7 @@ HEAD_HORIZONTAL_OFFSET = 0
 # new instances
 planner_instance = None
 executor_instance = None
+mapper_instance = None
 # END GLOBALS 
 
 def init_state(env, startPos):
@@ -144,6 +151,49 @@ class PlanExecutor(object):
         save_waypoint(self.env, pos)
 
 '''
+Abstract mapping class
+'''
+class AbstractMapper(object):
+    def __init__(self, env):
+        super(AbstractMapper, self).__init__()
+        self.env = env
+    
+    # update map based on new sensor data
+    def update(self, position, sensors):
+        pass
+
+'''
+Null mapper - does nothing, just a place holder for when no mapping is actually required
+'''
+class NullMapper(AbstractMapper):
+    def __init__(self, env):
+        super(NullMapper, self).__init__(env)
+
+
+'''
+Mapper that does no actual mapping, but logs all data to file for future analysis
+'''
+class FileLoggingMapper(AbstractMapper):
+    def __init__(self, env):
+        super(FileLoggingMapper, self).__init__(env)
+        self.logFilename = env.data_dir() + "/" + datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+        self.logFile = open(self.logFilename, 'a')
+
+    # save the data to file
+    def update(self, position, sensors):
+        data = { 'timestamp' : self.timestamp(),
+                 'position' : position,
+                 'leftSonar' : sensors.get_sensor('LeftSonar'),
+                 'rightSonar' : sensors.get_sensor('RightSonar') }
+        jstr = json.dumps(data)
+        self.env.log("Mapper.update: "+jstr)
+        self.logFile.write(jstr + "\n")
+        self.logFile.flush()
+
+    def timestamp(self):
+        return datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')
+
+'''
 Get the instance of the planner, creating an instance of the configured class if we don't already
 have a planner instance
 '''
@@ -172,6 +222,18 @@ def get_executor_instance(env, actionExecutor):
     # stale so we refresh it. We only have one executor instance at once so this should be OK
     executor_instance.actionExecutor = actionExecutor
     return executor_instance
+
+'''
+Get the instance of the mapper to use
+'''
+def get_mapper_instance(env):
+    global mapper_instance
+    if mapper_instance is None:
+        fqcn = env.get_property(DEFAULT_CONFIG_FILE, PROPERTY_MAPPER_CLASS, DEFAULT_MAPPER_CLASS)
+        env.log("Creating a new mapper instance of "+fqcn)
+        klass = find_class(fqcn)
+        mapper_instance = klass(env)
+    return mapper_instance
 
 def load_event(env):
     return from_json_string(env.memory.getData(MEM_CURRENT_EVENT))
@@ -242,7 +304,7 @@ Get the current position of the robot
 '''
 def get_position(env):
     # 1 = FRAME_WORLD
-    return env.motion.getPosition("Head", 1, True)
+    return env.motion.getPosition("Torso", 1, True)
 
 def save_waypoint(env, waypoint):
     path = env.memory.getData(MEM_WALK_PATH)

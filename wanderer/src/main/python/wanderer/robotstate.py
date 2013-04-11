@@ -20,6 +20,14 @@ JOINT_NAMES = ('HeadYaw', 'HeadPitch',
 
 SENSOR_NAMES = ('LeftBumper', 'RightBumper', 'LeftSonar', 'RightSonar')
 
+# return the current value of the left ultrasound sensor
+def left_sonar(env):
+    return env.memory.getData('Device/SubDeviceList/US/Left/Sensor/Value')
+
+#return the current value of the right ultrasound sensor
+def right_sonar(env):
+    return env.memory.getData('Device/SubDeviceList/US/Right/Sensor/Value')
+
 '''
 Current sensor values
 '''

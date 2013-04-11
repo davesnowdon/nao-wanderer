@@ -5880,6 +5880,65 @@ class MyClass(GeneratedClass):
                                                             <Diagram />
                                                         </BehaviorKeyframe>
                                                     </BehaviorLayer>
+                                                    <BehaviorLayer name="behavior_layer1">
+                                                        <BehaviorKeyframe name="L4-Inactive1" index="1">
+                                                            <Diagram />
+                                                        </BehaviorKeyframe>
+                                                        <BehaviorKeyframe name="MapUpdate" index="30">
+                                                            <Diagram>
+                                                                <Box name="MapUpdater" id="1" tooltip="Enter tooltip here" x="250" y="50">
+                                                                    <bitmap>media/images/box/box-diagram.png</bitmap>
+                                                                    <script language="4">
+                                                                        <content>
+                                                                            <![CDATA[import time
+
+class MyClass(GeneratedClass):
+    def __init__(self):
+        GeneratedClass.__init__(self)  
+
+    def onLoad(self):
+        #~ puts code for box initialization here
+        pass
+
+    def onUnload(self):
+        self.running = False
+
+    def onInput_onStart(self):
+        self.running = True   
+        self.env = naoenv.make_environment(self)
+        self.mapper = wanderer.get_mapper_instance(self.env)
+        
+        while self.running:
+            self.do_map_update()
+            time.sleep(1)
+        
+        self.onStopped() 
+        
+
+    def onInput_onStop(self):
+        self.onUnload()
+        
+    def do_map_update(self):
+        pos = wanderer.get_position(self.env)
+        ls = robotstate.left_sonar(self.env)
+        rs = robotstate.right_sonar(self.env)
+        sensors =  robotstate.Sensors ({ 'LeftSonar' : ls, 
+                                         'RightSonar' : rs })
+        self.mapper.update(pos, sensors)]]>
+</content>
+                                                                    </script>
+                                                                    <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
+                                                                    <Input name="onStart" type="1" type_size="1" nature="2" inner="0" tooltip="Box behavior starts when a signal is received on this input." id="2" />
+                                                                    <Input name="onStop" type="1" type_size="1" nature="3" inner="0" tooltip="Box behavior stops when a signal is received on this input." id="3" />
+                                                                    <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
+                                                                </Box>
+                                                                <Link inputowner="1" indexofinput="2" outputowner="0" indexofoutput="1" />
+                                                            </Diagram>
+                                                        </BehaviorKeyframe>
+                                                        <BehaviorKeyframe name="L4-Inactive-2" index="50">
+                                                            <Diagram />
+                                                        </BehaviorKeyframe>
+                                                    </BehaviorLayer>
                                                     <ActuatorList model="Nao">
                                                         <ActuatorCurve name="value" actuator="LAnklePitch" recordable="0" mute="0" unit="0">
                                                             <Key frame="25" value="3.79112" />

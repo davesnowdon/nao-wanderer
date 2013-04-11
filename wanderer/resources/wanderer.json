@@ -1,4 +1,6 @@
 {
    "plannerClass" : "wanderer.randomwalk.RandomWalk",
-   "executorClass" : "wanderer.wanderer.PlanExecutor"
+   "executorClass" : "wanderer.wanderer.PlanExecutor",
+   "mapperClass" : "wanderer.wanderer.FileLoggingMapper",
+   "httpPort" : 8080
 }
