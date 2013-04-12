@@ -178,6 +178,7 @@ class FileLoggingMapper(AbstractMapper):
         super(FileLoggingMapper, self).__init__(env)
         self.logFilename = env.data_dir() + "/" + datetime.datetime.now().strftime('%Y%m%d%H%M%S')
         self.logFile = open(self.logFilename, 'a')
+        self.env.log("Saving sensor data to "+self.logFilename)
 
     # save the data to file
     def update(self, position, sensors):
@@ -187,11 +188,17 @@ class FileLoggingMapper(AbstractMapper):
                  'rightSonar' : sensors.get_sensor('RightSonar') }
         jstr = json.dumps(data)
         self.env.log("Mapper.update: "+jstr)
-        self.logFile.write(jstr + "\n")
+        self.logFile.write(jstr + ",\n")
         self.logFile.flush()
 
     def timestamp(self):
         return datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')
+    
+    def get_sensor_data(self):
+        fdata = ''
+        with open(self.logFilename, 'r') as f:
+            fdata = f.read()
+        return '[\n' + fdata + ']\n'
 
 '''
 Get the instance of the planner, creating an instance of the configured class if we don't already
