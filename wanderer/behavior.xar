@@ -3757,6 +3757,7 @@ class MyClass(GeneratedClass):
         pythonbridge.evalFull("import wanderer.action as action")
         pythonbridge.evalFull("import wanderer.event as event")
         pythonbridge.evalFull("import wanderer.robotstate as robotstate")
+        pythonbridge.evalFull("import wanderer.http as http")
         pythonbridge.evalFull("import wanderer.wanderer as wanderer")
         pythonbridge.evalFull("from wanderer.randomwalk import RandomWalk")
         self.log("imports completed")]]>
@@ -5310,9 +5311,9 @@ class MyClass(GeneratedClass):
     def onInput_onStart(self, p):
         # imports already done on behaviour init
         self.env = naoenv.make_environment(self)
-        event = event.FaceDetected(p)
-        self.env.log("Storing FaceDetected event: "+repr(event))
-        wanderer.save_event(self.env, event)              
+        fdevent = event.FaceDetected(p)
+        self.env.log("Storing FaceDetected event: "+repr(fdevent))
+        wanderer.save_event(self.env, fdevent)              
         self.onStopped()
 
     def onInput_onStop(self):
@@ -13110,6 +13111,74 @@ pass]]>
                                                 <Output name="onStopped" type="3" type_size="1" nature="2" inner="0" tooltip="The text you entered." id="3" />
                                             </Box>
                                         </Diagram>
+                                    </BehaviorKeyframe>
+                                </BehaviorLayer>
+                                <BehaviorLayer name="http server">
+                                    <BehaviorKeyframe name="HTTPServer" index="8">
+                                        <Diagram>
+                                            <Box name="HTTPServer" id="1" tooltip="Enter tooltip here" x="302" y="60">
+                                                <bitmap>media/images/box/box-diagram.png</bitmap>
+                                                <script language="4">
+                                                    <content>
+                                                        <![CDATA[from threading import Thread
+import SimpleHTTPServer
+import SocketServer
+
+class ServerRunner(Thread):
+    def __init__(self, env_, port_):
+        Thread.__init__(self)
+        self.env = env_
+        self.port = int(port_)
+    
+    def run(self):
+        #try:
+        self.env.log("Starting HTTP server thread on port "+str(self.port))
+        self.httpd = http.make_server(self.env, self.port)
+        http.start_server(self.httpd)
+        self.env.log("server started:" + str(self.httpd))
+        #except Exception as e:
+        #    self.env.log("Server failed to start")
+    
+    def stop(self):
+        http.stop_server(self.httpd)
+
+# TODO get HTTP server working
+class MyClass(GeneratedClass):
+    def __init__(self):
+        GeneratedClass.__init__(self)
+        self.started = False
+
+    def onLoad(self):
+        self.env = naoenv.make_environment(self)
+        self.httpPort = self.env.get_property(wanderer.DEFAULT_CONFIG_FILE,
+                                              wanderer.PROPERTY_HTTP_PORT,
+                                              wanderer.DEFAULT_HTTP_PORT)
+        self.server = ServerRunner(self.env, self.httpPort)
+
+    def onUnload(self):
+        self.server.stop()
+        pass
+
+    def onInput_onStart(self):
+        if not self.started:
+            self.server.start()
+            self.started = True
+        pass
+
+    def onInput_onStop(self):
+        self.onUnload()]]>
+</content>
+                                                </script>
+                                                <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
+                                                <Input name="onStart" type="1" type_size="1" nature="2" inner="0" tooltip="Box behavior starts when a signal is received on this input." id="2" />
+                                                <Input name="onStop" type="1" type_size="1" nature="3" inner="0" tooltip="Box behavior stops when a signal is received on this input." id="3" />
+                                                <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
+                                            </Box>
+                                            <Link inputowner="1" indexofinput="2" outputowner="0" indexofoutput="1" />
+                                        </Diagram>
+                                    </BehaviorKeyframe>
+                                    <BehaviorKeyframe name="HTTP server inactive" index="80">
+                                        <Diagram />
                                     </BehaviorKeyframe>
                                 </BehaviorLayer>
                             </Timeline>
