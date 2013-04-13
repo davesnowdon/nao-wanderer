@@ -35,6 +35,8 @@ PROPERTY_EXECUTOR_CLASS = "executorClass"
 DEFAULT_EXECUTOR_CLASS = "wanderer.wanderer.PlanExecutor"
 PROPERTY_MAPPER_CLASS = "mapperClass"
 DEFAULT_MAPPER_CLASS = "wanderer.wanderer.NullMapper"
+PROPERTY_HTTP_PORT = "httpPort"
+DEFAULT_HTTP_PORT = 8080
 
 CENTRE_BIAS = False
 HEAD_HORIZONTAL_OFFSET = 0
@@ -161,6 +163,10 @@ class AbstractMapper(object):
     # update map based on new sensor data
     def update(self, position, sensors):
         pass
+    
+    # return the current map
+    def get_map(self):
+        return None
 
 '''
 Null mapper - does nothing, just a place holder for when no mapping is actually required
