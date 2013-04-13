@@ -4015,10 +4015,10 @@ class MyClass(GeneratedClass):
         # imports already done on behaviour init
         self.log("Create plan")        
         self.env = naoenv.make_environment(self) 
-        event = wanderer.load_event(self.env)
-        self.env.log("Event = "+str(event))
+        eventToHandle = wanderer.load_event(self.env)
+        self.env.log("Event = "+str(eventToHandle))
         planner = wanderer.get_planner_instance(self.env)
-        planner.handleEvent(event, None)
+        planner.handleEvent(eventToHandle, None)
         self.onStopped()]]>
 </content>
                                                                     </script>
