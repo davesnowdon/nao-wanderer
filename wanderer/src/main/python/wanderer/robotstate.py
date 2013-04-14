@@ -6,6 +6,7 @@ Created on Feb 4, 2013
 Code handling robot state (sensors, motor current etc)
 '''
 
+import math
 
 # joint names in same order as returned by ALMotion.getAngles('Body')
 JOINT_NAMES = ('HeadYaw', 'HeadPitch', 
@@ -20,6 +21,11 @@ JOINT_NAMES = ('HeadYaw', 'HeadPitch',
 
 SENSOR_NAMES = ('LeftBumper', 'RightBumper', 'LeftSonar', 'RightSonar')
 
+NAO_SONAR_ANGULAR_SPREAD = math.pi/6
+NAO_SONAR_RADIAL_SPREAD = 0.1
+NAO_SONAR_MIN_RANGE = 0.25
+NAO_SONAR_MAX_RANGE = 2.5
+
 # return the current value of the left ultrasound sensor
 def left_sonar(env):
     return env.memory.getData('Device/SubDeviceList/US/Left/Sensor/Value')
@@ -27,6 +33,25 @@ def left_sonar(env):
 #return the current value of the right ultrasound sensor
 def right_sonar(env):
     return env.memory.getData('Device/SubDeviceList/US/Right/Sensor/Value')
+
+'''
+Model the parameters of an ultrasound sensor
+minRange = minimum range at which the sensor is effective
+maxRange = maximum range of the sensor
+spread = angle (radians) at which the ultrasound spreads
+'''
+class UltrasoundModel(object):
+    def __init__(self, minRange_, maxRange_, angularSpread_, radialSpread_):
+        self.minRange = minRange_
+        self.maxRange = maxRange_
+        self.angularSpread = angularSpread_
+        self.radialSpread = radialSpread_
+
+def nao_sonar_model():
+    return UltrasoundModel(NAO_SONAR_MIN_RANGE, 
+                           NAO_SONAR_MAX_RANGE, 
+                           NAO_SONAR_ANGULAR_SPREAD, 
+                           NAO_SONAR_RADIAL_SPREAD)
 
 '''
 Current sensor values
