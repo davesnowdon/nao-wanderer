@@ -6,6 +6,8 @@ Created on 13 Apr 2013
 
 import math
 
+from mathutil import is_zero
+
 class Point(object):
     def __init__(self, x_, y_):
         self.x = x_
@@ -91,14 +93,6 @@ def is_inside_sector(point, centre, startAngle, endAngle, radius):
         (not are_clockwise(sectorStart, relPoint) or are_coincident(sectorStart, relPoint)) and \
         (are_clockwise(sectorEnd, relPoint) or are_coincident(sectorEnd, relPoint))
         
-
-EPSILON=0.00000001
-
-def feq(a,b):
-    return abs(a-b) < EPSILON
-
-def is_zero(a):
-    return abs(a) < EPSILON
 
 '''
 Helper functions for is_inside_sector
