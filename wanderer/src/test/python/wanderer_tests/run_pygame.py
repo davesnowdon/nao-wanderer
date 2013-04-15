@@ -8,6 +8,7 @@ import sys
 import pygame
 import wanderer.grid as grid
 from wanderer.robotstate import nao_sonar_model
+from util.geometry import Point
 import random
 import json
 import time
@@ -23,7 +24,7 @@ def main():
     windowSize = grid.GRID_SIZE*CELL_PIX
     window = pygame.display.set_mode((windowSize, windowSize)) 
     
-    board = grid.OccupancyGrid(grid.GRID_SIZE, grid.CELL_SIZE)
+    board = grid.OccupancyGrid(grid.GRID_SIZE, grid.CELL_SIZE, Point(0,0))
     sonarModel = nao_sonar_model()
     
     send_sense(data, board, window, sonarModel)
@@ -70,6 +71,7 @@ def wait_for_exit():
             
                 
 def send_sense(data, board, window, sonarModel):
+    print "Reading sensor data"
     for x in data:
         left = x["leftSonar"]
         right = x["rightSonar"]
@@ -81,7 +83,7 @@ def send_sense(data, board, window, sonarModel):
         pygame.display.flip()
         #time.sleep(0.01)
         #break
-    
+    print "done"
               
 if __name__ == '__main__':
     main()

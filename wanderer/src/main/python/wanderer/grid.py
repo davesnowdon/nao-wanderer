@@ -32,9 +32,10 @@ Occupancy grid - square grid of cells in which the value of each cell is the pro
 it is occupied
 '''
 class OccupancyGrid(object):
-    def __init__(self, numCells_, cellSize_):
+    def __init__(self, numCells_, cellSize_, origin_):
         self.gridSize = numCells_
         self.cellSize = cellSize_
+        self.origin = origin_
         self.grid = [UNKNOWN for i in range(self.gridSize*self.gridSize)]
     
     def cell_at(self, x, y):
@@ -50,37 +51,51 @@ class OccupancyGrid(object):
     def update_grid_cells(self, sensorValue, sonarModel):
         startAngle = sensorValue.get_rotation() - sonarModel.angularSpread
         endAngle = sensorValue.get_rotation() + sonarModel.angularSpread
-        sector = CircleSector(sensorValue.get_point(), startAngle, endAngle, 
-                              sensorValue.leftSonar+sonarModel.radialSpread)
-
         lp = sensorValue.get_point()
-        for x in range(0, self.gridSize):
+        updateRadius = sensorValue.leftSonar+sonarModel.radialSpread
+        sector = CircleSector(lp, startAngle, endAngle, updateRadius)
+        
+        # work out the maximum size of the area we need to update to avoid checking cells that
+        # cannot overlap the area covered by the sensor update
+        (minX, minY, maxX, maxY) = self.get_update_region(lp, updateRadius)
+        
+        for x in range(minX, maxX+1):
             sx= x*self.cellSize
-            for y in range(0, self.gridSize):
+            for y in range(minY, maxY+1):
                 sy= y*self.cellSize
                 cornerPoints = [ Point(sx,sy), 
                                  Point(sx+self.cellSize,sy), 
                                  Point(sx,sy + self.cellSize), 
                                  Point(sx+self.cellSize, sy+self.cellSize) ]
+                numCornersInSector = 0
                 for p  in cornerPoints:
-                    if(is_inside_sector(p, lp, startAngle, endAngle, sensorValue.leftSonar)):
-                        if (sector.is_inside(p)):
-                            self.update_cell(x, y, sensorValue, sonarModel)
-                            # only update a cell once
-                            break
+                    if (sector.is_inside(p)):
+                        numCornersInSector = numCornersInSector + 1
+                if numCornersInSector > 0:
+                    self.update_cell(x, y, numCornersInSector, sensorValue, sonarModel)
+
 
     # this is called when we know we have a cell in range of a sonar update and we need to update
     # the probability of the cell being occupied
-    def update_cell(self, x, y, sensorValue, sonarModel):
+    def update_cell(self, x, y, numCornersInSector, sensorValue, sonarModel):
         cellCentre = Point(x*self.cellSize+self.cellSize/2, 
                            y*self.cellSize+self.cellSize/2)
         # decide whether the cell is in the "probably empty" region or the "probably occupied" region
         cellDistance = pointDistance(sensorValue.get_point(), cellCentre)
+        updateFactor = float(numCornersInSector) / 4.0
         if (cellDistance < sensorValue.leftSonar-sonarModel.radialSpread):
             # probably empty region
-            self.set_cell_at(x, y, self.cell_at(x, y) + EMPTY_REGION_UPDATE)
+            self.set_cell_at(x, y, self.cell_at(x, y) + EMPTY_REGION_UPDATE * updateFactor)
         else:
             # probably occupied region
-            self.set_cell_at(x, y, self.cell_at(x, y) + OCCUPIED_REGION_UPDATE)
+            self.set_cell_at(x, y, self.cell_at(x, y) + OCCUPIED_REGION_UPDATE * updateFactor)
         
-
+    def get_update_region(self, robotPosition, updateRadius):
+        cellX = int((robotPosition.x - self.origin.x) / self.cellSize)
+        cellY = int((robotPosition.y - self.origin.y) / self.cellSize)
+        cellRadius = int(round(0.5 + updateRadius / self.cellSize))
+        minX = cellX-cellRadius if (cellX-cellRadius) > 0 else 0
+        minY = cellY-cellRadius if (cellY-cellRadius) > 0 else 0
+        maxX = cellX+cellRadius if (cellX+cellRadius) < self.gridSize else self.gridSize-1
+        maxY = cellY+cellRadius if (cellY+cellRadius) < self.gridSize else self.gridSize-1
+        return (minX, minY, maxX, maxY)
