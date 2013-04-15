@@ -21,6 +21,9 @@ class Point(object):
     
     def clone(self):
         return Point(self.x, self.y)
+    
+    def to_string(self):
+        return "("+str(self.x)+", "+str(self.y)+")"
 
 '''
 make a point from another point
@@ -51,7 +54,7 @@ def line_at_angle(startPoint, angle, radius):
 
 '''
 Represents a sector of a circle from a point (which would be the centre of the circle), a starting
-and ending angle and a radius
+and ending angle and a radius. The code considers the end arm to be anti-clockwise (increase in angle) from the start arm
 '''
 class CircleSector(object):
     def __init__(self, centre_, startAngle_, endAngle_, radius_):
@@ -66,29 +69,46 @@ class CircleSector(object):
 
     def is_inside(self, point):
         relPoint = pointDifference(point, self.centre)
-        return not are_clockwise(self.sectorStart, relPoint) and \
-            are_clockwise(self.sectorEnd, relPoint) and   \
-            is_within_radius(relPoint, self.radiusSquared)
+        return is_within_radius(relPoint, self.radiusSquared) and \
+            (not are_clockwise(self.sectorStart, relPoint) or are_coincident(self.sectorStart, relPoint)) and \
+            (are_clockwise(self.sectorEnd, relPoint) or are_coincident(self.sectorEnd, relPoint))
 
 
 '''
 Return true of point (1st param) is inside the circle sector described by the centre point (centre of
-the circle that the sector is a segment of), two angles and a radius
+the circle that the sector is a segment of), two angles and a radius. The code considers the end arm 
+to be anti-clockwise (increase in angle) from the start arm.
+
+See thi description:
+http://stackoverflow.com/questions/13652518/efficiently-find-points-inside-a-circle-sector
 '''
 def is_inside_sector(point, centre, startAngle, endAngle, radius):
     radiusSquared = radius * radius
     relPoint = pointDifference(point, centre)
     sectorStart = line_at_angle(centre, startAngle, radius)
     sectorEnd = line_at_angle(centre, endAngle, radius)
-    return not are_clockwise(sectorStart, relPoint) and \
-        are_clockwise(sectorEnd, relPoint) and   \
-        is_within_radius(relPoint, radiusSquared)
+    return is_within_radius(relPoint, radiusSquared) and \
+        (not are_clockwise(sectorStart, relPoint) or are_coincident(sectorStart, relPoint)) and \
+        (are_clockwise(sectorEnd, relPoint) or are_coincident(sectorEnd, relPoint))
+        
+
+EPSILON=0.00000001
+
+def feq(a,b):
+    return abs(a-b) < EPSILON
+
+def is_zero(a):
+    return abs(a) < EPSILON
 
 '''
 Helper functions for is_inside_sector
 '''
 def are_clockwise(v1, v2):
     return -v1.x*v2.y + v1.y*v2.x > 0.0;
+
+# return true if both vecotrs are co-incident (on the same line)
+def are_coincident(v1, v2):
+    return is_zero(-v1.x*v2.y + v1.y*v2.x)
 
 def is_within_radius(v, radiusSquared):
     return v.x*v.x + v.y*v.y <= radiusSquared;
