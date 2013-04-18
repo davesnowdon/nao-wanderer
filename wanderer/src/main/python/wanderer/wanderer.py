@@ -41,6 +41,7 @@ DEFAULT_HTTP_PORT = 8080
 
 CENTRE_BIAS = False
 HEAD_HORIZONTAL_OFFSET = 0
+WANDERER_NAME = "wanderer"
 
 # START GLOBALS
 # We put instances of planners, executors and mappers here so we don't need to continually create
@@ -259,7 +260,7 @@ def get_mapper_instance(env):
 
 def make_wanderer_environment(box_):
     env = make_environment(box_)
-    # TODO add customisation of event here
+    env.set_application_name(WANDERER_NAME)
     return env
 
 def load_event(env):
