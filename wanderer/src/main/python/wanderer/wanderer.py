@@ -13,6 +13,7 @@ from naoutil.general import find_class
 import robotstate
 from event import *
 from action import *
+from naoutil.naoenv import make_environment
 
 '''
 Here we define the memory locations used to store state
@@ -183,8 +184,12 @@ class FileLoggingMapper(AbstractMapper):
     def __init__(self, env):
         super(FileLoggingMapper, self).__init__(env)
         self.logFilename = env.data_dir() + "/" + datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-        self.logFile = open(self.logFilename, 'a')
         self.env.log("Saving sensor data to "+self.logFilename)
+        try:
+            self.logFile = open(self.logFilename, 'a')
+        except IOError:
+            self.env.log("Failed to open file: "+self.logFilename)
+            self.logFile = None
 
     # save the data to file
     def update(self, position, sensors):
@@ -194,16 +199,20 @@ class FileLoggingMapper(AbstractMapper):
                  'rightSonar' : sensors.get_sensor('RightSonar') }
         jstr = json.dumps(data)
         self.env.log("Mapper.update: "+jstr)
-        self.logFile.write(jstr + ",\n")
-        self.logFile.flush()
+        if self.logFile is not None:
+            self.logFile.write(jstr + ",\n")
+            self.logFile.flush()
 
     def timestamp(self):
         return datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')
     
     def get_sensor_data(self):
         fdata = ''
-        with open(self.logFilename, 'r') as f:
-            fdata = f.read()
+        try:
+            with open(self.logFilename, 'r') as f:
+                fdata = f.read()
+        except IOError:
+            self.env.log("Failed to read data from: "+self.logFilename)
         return '[\n' + fdata + ']\n'
 
 '''
@@ -247,6 +256,11 @@ def get_mapper_instance(env):
         klass = find_class(fqcn)
         mapper_instance = klass(env)
     return mapper_instance
+
+def make_wanderer_environment(box_):
+    env = make_environment(box_)
+    # TODO add customisation of event here
+    return env
 
 def load_event(env):
     return from_json_string(env.memory.getData(MEM_CURRENT_EVENT))

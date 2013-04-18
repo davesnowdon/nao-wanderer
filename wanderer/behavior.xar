@@ -3921,7 +3921,7 @@ class MyClass(GeneratedClass):
 
     def onInput_onStart(self):
         # imports already done on behaviour init        
-        self.env = naoenv.make_environment(self)        
+        self.env = wanderer.make_wanderer_environment(self)        
         sd = self.env.memory.getData("WandererSecurityDistance")
         startEvent = event.Start()        
         self.env.log("Storing Start event: "+repr(startEvent))
@@ -4011,7 +4011,7 @@ class MyClass(GeneratedClass):
     def onInput_onStart(self):
         # imports already done on behaviour init
         self.log("Create plan")        
-        self.env = naoenv.make_environment(self) 
+        self.env = wanderer.make_wanderer_environment(self) 
         eventToHandle = wanderer.load_event(self.env)
         self.env.log("Event = "+str(eventToHandle))
         planner = wanderer.get_planner_instance(self.env)
@@ -4040,7 +4040,7 @@ class MyClass(GeneratedClass):
 
     def onLoad(self):
         # imports already done on behaviour init
-        self.env = naoenv.make_environment(self)
+        self.env = wanderer.make_wanderer_environment(self)
         self.resources_path = ALFrameManager.getBehaviorPath(self.behaviorId) + "/resources"
     def onUnload(self):
         pass
@@ -5326,7 +5326,6 @@ class MyClass(GeneratedClass):
                                                                             <![CDATA[class MyClass(GeneratedClass):
     def __init__(self):
         GeneratedClass.__init__(self)
-        self.memProxy = ALProxy("ALMemory")
 
     def onLoad(self):
         #~ puts code for box initialization here
@@ -5336,13 +5335,15 @@ class MyClass(GeneratedClass):
         #~ puts code for box cleanup here
         pass
 
+    # TODO need to implement face detected handler
     def onInput_onStart(self, p):
         # imports already done on behaviour init
-        self.env = naoenv.make_environment(self)
-        fdevent = event.FaceDetected(p)
-        self.env.log("Storing FaceDetected event: "+repr(fdevent))
-        wanderer.save_event(self.env, fdevent)              
-        self.onStopped()
+        #self.env = wanderer.make_wanderer_environment(self)
+        #fdevent = event.FaceDetected(p)
+        #self.env.log("Storing FaceDetected event: "+repr(fdevent))
+        #wanderer.save_event(self.env, fdevent)              
+        #self.onStopped()
+        pass
 
     def onInput_onStop(self):
         self.onUnload() #~ it is recommanded to call onUnload of this box in a onStop method, as the code written in onUnload is used to stop the box as well
@@ -5791,7 +5792,7 @@ class MyClass(GeneratedClass):
 
     def onLoad(self):
         # imports already done on behaviour init
-        self.env = naoenv.make_environment(self)
+        self.env = wanderer.make_wanderer_environment(self)
 
     def onUnload(self):
         #~ puts code for box cleanup here
@@ -5835,7 +5836,8 @@ class MyClass(GeneratedClass):
                                         'RightBumper' : self.rightBumper, 
                                         'LeftSonar' : self.leftSonar, 
                                         'RightSonar' : self.rightSonar })
-        ev = event.ObstacleDetected(source, sensors)
+        position = wanderer.get_position(self.env)
+        ev = event.ObstacleDetected(source, sensors, position)
         self.env.log("Storing ObstacleDetected event "+repr(ev))  
         wanderer.save_event(self.env, ev)    
         self.onStopped()
@@ -5875,7 +5877,7 @@ class MyClass(GeneratedClass):
                                                             <Diagram />
                                                         </BehaviorKeyframe>
                                                     </BehaviorLayer>
-                                                    <BehaviorLayer name="behavior_layer1">
+                                                    <BehaviorLayer name="mapping">
                                                         <BehaviorKeyframe name="L4-Inactive1" index="1">
                                                             <Diagram />
                                                         </BehaviorKeyframe>
@@ -5900,7 +5902,7 @@ class MyClass(GeneratedClass):
 
     def onInput_onStart(self):
         self.running = True   
-        self.env = naoenv.make_environment(self)
+        self.env = wanderer.make_wanderer_environment(self)
         self.mapper = wanderer.get_mapper_instance(self.env)
         
         while self.running:

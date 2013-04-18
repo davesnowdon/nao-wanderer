@@ -20,7 +20,7 @@ class Test(unittest.TestCase):
                            'RightBumper' : False, 
                            'LeftSonar' : 0.25, 
                            'RightSonar' : 0.8})
-        ev = ObstacleDetected('LeftBumper', sensors)
+        ev = ObstacleDetected('LeftBumper', sensors, [1.0,2.0,3.0,4.0,5.0,6.0])
         self.json_serialisation(ev)
 
     def json_serialisation(self, ev):
