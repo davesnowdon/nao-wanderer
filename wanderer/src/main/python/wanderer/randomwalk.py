@@ -7,10 +7,11 @@ import math
 from random import Random
 
 from naoutil.general import class_to_name
-from util.mathutil import to_radians
+from util.mathutil import to_radians, is_zero
+from robotstate import NAO_SONAR_MIN_RANGE, NAO_SONAR_MAX_RANGE
 from event import *
 from action import *
-from wanderer import Planner
+from wanderer import Planner, robotstate
 
 class RandomWalk(Planner):
 
@@ -43,23 +44,33 @@ class RandomWalk(Planner):
 def event_to_obstruction_direction(event):
     if is_obstruction(event):
         if event.source == 'LeftBumper':
-            return (0.0, math.pi)
-        elif event.source == 'RightBumper':
             return (-math.pi, 0.0)
+        elif event.source == 'RightBumper':
+            return (0.0, math.pi)
         else:
             leftSonar = float(event.sensorData.get_sensor('LeftSonar'))
             rightSonar = float(event.sensorData.get_sensor('RightSonar'))
             smin = min(leftSonar, rightSonar)
             smax = max(leftSonar, rightSonar)
             srange = smax - smin
-            normLeftSonar = (leftSonar-smin) / srange
-            normRightSonar = (rightSonar-smin) / srange
-            meanSonar = (normLeftSonar + normRightSonar) / 2.0
-            if meanSonar <= 0.001:
-                return (-math.pi, math.pi)
+            if is_zero(srange):
+                # there is no difference between the sonar values so there is an obstacle preventing
+                # us from moving forward, we need to turn around
+                return (math.pi/2, math.pi*1.5)
             else:
-                return ((normLeftSonar-meanSonar-1.0)*math.pi/2.0,
-                        (1.0-normRightSonar-meanSonar)*math.pi/2.0)
+                maxRangeDifference = NAO_SONAR_MAX_RANGE - NAO_SONAR_MIN_RANGE
+                normLeftSonar = (leftSonar-smin) / maxRangeDifference
+                normRightSonar = (rightSonar-smin) / maxRangeDifference
+                if normLeftSonar > normRightSonar:
+                    degree_of_turn = (1.0-normLeftSonar) * math.pi/2
+                    return (degree_of_turn, degree_of_turn+math.pi)
+                elif normLeftSonar < normRightSonar:
+                    degree_of_turn = (1.0-normRightSonar) * -math.pi/2
+                    return (degree_of_turn, degree_of_turn-math.pi)
+                else:
+                    # treat as obstacle dead ahead (probably shouldn't get here except in case of
+                    # float rounding making left and right equal after normalisation)
+                    return (math.pi/2, math.pi*1.5)
     else:
         return (-math.pi, math.pi)
 
