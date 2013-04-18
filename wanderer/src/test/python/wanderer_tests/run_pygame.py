@@ -15,10 +15,15 @@ import time
 
 CELL_PIX=5
 
-def main():
+def main(argv=None):
     pygame.init() 
     
-    data = load_sense_data()
+    if len(argv) == 0:
+        sys.exit(1)
+        
+    data_filename = argv[0]
+    
+    data = load_sense_data(data_filename)
     
     
     windowSize = grid.GRID_SIZE*CELL_PIX
@@ -86,4 +91,4 @@ def send_sense(data, board, window, sonarModel):
     print "done"
               
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])
