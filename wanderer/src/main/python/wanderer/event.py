@@ -35,6 +35,9 @@ class Start(Event):
     def __init__(self, timestamp_=None):
         super(Start, self).__init__(timestamp_)
 
+class Continue(Event):
+    def __init__(self, timestamp_=None):
+        super(Continue, self).__init__(timestamp_)
 
 class ObstacleDetected(Event):
     def __init__(self, source_, sensorData_, position_):

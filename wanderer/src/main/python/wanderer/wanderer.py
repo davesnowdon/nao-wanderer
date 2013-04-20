@@ -38,6 +38,7 @@ PROPERTY_MAPPER_CLASS = "mapperClass"
 DEFAULT_MAPPER_CLASS = "wanderer.wanderer.NullMapper"
 PROPERTY_HTTP_PORT = "httpPort"
 DEFAULT_HTTP_PORT = 8080
+STATIC_WEB_DIR = "web"
 
 CENTRE_BIAS = False
 HEAD_HORIZONTAL_OFFSET = 0
@@ -199,7 +200,7 @@ class FileLoggingMapper(AbstractMapper):
                  'leftSonar' : sensors.get_sensor('LeftSonar'),
                  'rightSonar' : sensors.get_sensor('RightSonar') }
         jstr = json.dumps(data)
-        self.env.log("Mapper.update: "+jstr)
+        #self.env.log("Mapper.update: "+jstr)
         if self.logFile is not None:
             self.logFile.write(jstr + ",\n")
             self.logFile.flush()

@@ -11,7 +11,7 @@ from util.mathutil import to_radians, is_zero
 from robotstate import NAO_SONAR_MIN_RANGE, NAO_SONAR_MAX_RANGE
 from event import *
 from action import *
-from wanderer import Planner, robotstate
+from wanderer import Planner, get_current_action, set_current_action, load_plan
 
 class RandomWalk(Planner):
 
@@ -34,6 +34,16 @@ class RandomWalk(Planner):
     def handleStart(self, event, state):
         direction = to_radians(self.rng.randint(0, 360))
         return [Turn(direction), WalkForwardsIndefinitely()]
+
+    # continue with the action that was in progress
+    def handleContinue(self, event, state):
+        currentAction = get_current_action(self.env)
+        set_current_action(self.env, NullAction())
+        return [currentAction]  + load_plan(self.env)
+        
+
+    def handleFaceDetected(self, event, state):
+        pass
 
     '''
     Take an event representing an obstruction and work out what
