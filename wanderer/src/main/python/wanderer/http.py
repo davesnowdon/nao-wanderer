@@ -50,7 +50,7 @@ class NaoRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         # list of possible actions, need to have longest paths first for matching to wotk
         responses = [
                      ('/actions/done' , self.do_actions_done),
-                     ('actions/planned' , self.do_actions_planned),
+                     ('/actions/planned' , self.do_actions_planned),
                      ('/actions/current' , self.do_actions_current),
                      ('/action' , ['done', 'planned', 'current']),
                      ('/raw/sensed' , self.do_raw_sensed),
@@ -74,7 +74,7 @@ class NaoRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 requestCompleted = True
                 break
         if not requestCompleted:
-            self.do_static_file(self.path.lower())
+            self.do_static_file(rq)
 
     def json_header(self):
         self.send_response(200)
@@ -99,12 +99,14 @@ class NaoRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.wfile.write(env.localized_text("defaults", "error.web.404"))
 
     def do_index(self, params):
-        self.do_static_file("/index.html")
+        self.do_static_file("index.html")
 
     # serve static files located in /resources/web
     def do_static_file(self, path):
-        env = self.get_env()
-        file_path = os.path.join(env.resources_dir(), wanderer.STATIC_WEB_DIR, path)
+        if path.startswith("/"):
+            path = path[1:]
+        file_path = os.path.join(self.server.env.resources_dir(), wanderer.STATIC_WEB_DIR, path)
+        #file_path = os.path.join("/home/nao/behaviors/.currentChoregrapheBehavior/resources/web", path)
         self.server.env.log("REQUEST: File "+path+" mapped to "+file_path)
         (content_type, encoding) = mimetypes.guess_type(file_path)
         if content_type.startswith('text/'):
@@ -116,7 +118,7 @@ class NaoRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header("Content-type", content_type)
                 self.end_headers()
-                shutil.copyfile(path, fp)
+                shutil.copyfile(fp, self.wfile)
         except IOError:
             self.server.env.log("REQUEST: File "+file_path+" not found")
             self.send_404(path)
