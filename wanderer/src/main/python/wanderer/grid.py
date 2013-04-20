@@ -22,7 +22,7 @@ class Location(object):
         self.currLocation = currLocation_
         
     def get_point(self):
-        return Point(self.currLocation[0] + 5, self.currLocation[1] + 5)
+        return Point(self.currLocation[0], self.currLocation[1])
     
     def get_rotation(self):
         return self.currLocation[5]
@@ -38,6 +38,12 @@ class OccupancyGrid(object):
         self.origin = origin_
         self.grid = [UNKNOWN for i in range(self.gridSize*self.gridSize)]
     
+    def name(self):
+        return self.__class__.__name__
+
+    def __eq__(self, other):
+        return self.name() == other.name() and  self.__dict__ == other.__dict__
+    
     def cell_at(self, x, y):
         return self.grid[x+y*self.gridSize]
     
@@ -51,7 +57,9 @@ class OccupancyGrid(object):
     def update_grid_cells(self, sensorValue, sonarModel):
         startAngle = sensorValue.get_rotation() - sonarModel.angularSpread
         endAngle = sensorValue.get_rotation() + sonarModel.angularSpread
-        lp = sensorValue.get_point()
+        # transform points to be relative to centre of grid
+        half_width = (self.gridSize * self.cellSize) / 2.0
+        lp = pointSum(sensorValue.get_point(), Point(half_width, half_width))
         updateRadius = sensorValue.leftSonar+sonarModel.radialSpread
         sector = CircleSector(lp, startAngle, endAngle, updateRadius)
         
@@ -99,3 +107,20 @@ class OccupancyGrid(object):
         maxX = cellX+cellRadius if (cellX+cellRadius) < self.gridSize else self.gridSize-1
         maxY = cellY+cellRadius if (cellY+cellRadius) < self.gridSize else self.gridSize-1
         return (minX, minY, maxX, maxY)
+
+    # used to support JSON serialisation of custom classes
+    def to_json(self):
+        return { 'gridSize': self.gridSize,
+                 'cellSize' : self.cellSize,
+                 'origin-x' : self.origin.x,
+                 'origin-y' : self.origin.y,
+                 'grid' : self.grid }
+
+    # used to enable this class & sub types to be reconstituted from JSON
+    @classmethod
+    def from_json(klass, json_object):
+        obj = klass(json_object['gridSize'], 
+                    json_object['cellSize'],
+                    Point(json_object['origin-x'], json_object['origin-y']))
+        obj.grid = json_object['grid']
+        return obj

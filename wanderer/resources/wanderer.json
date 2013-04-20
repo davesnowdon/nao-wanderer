@@ -1,6 +1,6 @@
 {
    "plannerClass" : "wanderer.randomwalk.RandomWalk",
    "executorClass" : "wanderer.wanderer.PlanExecutor",
-   "mapperClass" : "wanderer.wanderer.FileLoggingMapper",
+   "mapperClass" : "wanderer.grid_mapper.OccupancyGridMapper",
    "httpPort" : 8080
 }
