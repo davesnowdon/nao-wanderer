@@ -4,6 +4,10 @@ Created on 12 Apr 2013
 @author: dsnowdon
 '''
 
+import os
+import posixpath
+import mimetypes
+import shutil
 import BaseHTTPServer
 
 from naoutil.jsonobj import to_json_file
@@ -54,7 +58,7 @@ class NaoRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                      ('/map/json' , self.do_map_json),
                      ('/map/image' , self.do_map_image),
                      ('/map' , ['json', 'image']),
-                     ('/' , ['actions','raw','map'])
+                     ('/' , self.do_index)
                      ]
         
         rq = self.path.lower()
@@ -70,7 +74,7 @@ class NaoRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 requestCompleted = True
                 break
         if not requestCompleted:
-            self.do_default()
+            self.do_static_file(self.path.lower())
 
     def json_header(self):
         self.send_response(200)
@@ -87,10 +91,36 @@ class NaoRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(msg)
 
-    # return default content
-    def do_default(self):
-        self.json_response(['actions','raw','map'])
-    
+    def send_404(self, path):
+        env = self.get_env()
+        self.send_response(404)
+        self.send_header("Content-type", "text/plain")
+        self.end_headers()
+        self.wfile.write(env.localized_text("defaults", "error.web.404"))
+
+    def do_index(self, params):
+        self.do_static_file("/index.html")
+
+    # serve static files located in /resources/web
+    def do_static_file(self, path):
+        env = self.get_env()
+        file_path = os.path.join(env.resources_dir(), wanderer.STATIC_WEB_DIR, path)
+        self.server.env.log("REQUEST: File "+path+" mapped to "+file_path)
+        (content_type, encoding) = mimetypes.guess_type(file_path)
+        if content_type.startswith('text/'):
+            mode = 'r'
+        else:
+            mode = 'rb'
+        try:
+            with open(file_path, mode) as fp:
+                self.send_response(200)
+                self.send_header("Content-type", content_type)
+                self.end_headers()
+                shutil.copyfile(path, fp)
+        except IOError:
+            self.server.env.log("REQUEST: File "+file_path+" not found")
+            self.send_404(path)
+
     def do_actions_done(self, params):
         obj = wanderer.load_completed_actions(self.get_env())
         self.json_response(obj)
