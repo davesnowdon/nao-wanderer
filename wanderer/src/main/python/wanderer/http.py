@@ -109,19 +109,30 @@ class NaoRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         #file_path = os.path.join("/home/nao/behaviors/.currentChoregrapheBehavior/resources/web", path)
         self.server.env.log("REQUEST: File "+path+" mapped to "+file_path)
         (content_type, encoding) = mimetypes.guess_type(file_path)
+        self.copy_file_to_output(file_path, content_type)
+
+    def copy_file_to_output(self, src, content_type, buffer_size=1024):
         if content_type.startswith('text/'):
             mode = 'r'
         else:
             mode = 'rb'
         try:
-            with open(file_path, mode) as fp:
+            try:
+                fp = open(src, mode)
                 self.send_response(200)
                 self.send_header("Content-type", content_type)
                 self.end_headers()
-                shutil.copyfile(fp, self.wfile)
+                while 1:
+                    copy_buffer = fp.read(buffer_size)
+                    if copy_buffer:
+                        self.wfile.write(copy_buffer)
+                    else:
+                        break
+            finally:
+                fp.close()
         except IOError:
-            self.server.env.log("REQUEST: File "+file_path+" not found")
-            self.send_404(path)
+            self.server.env.log("REQUEST: File "+src+" not found")
+            self.send_404(src)
 
     def do_actions_done(self, params):
         obj = wanderer.load_completed_actions(self.get_env())
