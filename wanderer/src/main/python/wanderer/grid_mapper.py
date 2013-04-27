@@ -5,14 +5,13 @@ Created on 19 Apr 2013
 '''
 
 from naoutil.jsonobj import to_json_string
-from wanderer import AbstractMapper, MEM_MAP
+from wanderer import FileLoggingMapper, MEM_MAP
 from grid import OccupancyGrid, Location, GRID_SIZE, CELL_SIZE
 from robotstate import nao_sonar_model
 
-class OccupancyGridMapper(AbstractMapper):
-    def __init__(self, env):
-        super(OccupancyGridMapper, self).__init__(env)
-        self.env = env
+class OccupancyGridMapper(FileLoggingMapper):
+    def __init__(self, env, save_data=True):
+        super(OccupancyGridMapper, self).__init__(env, save_data)
         self.grid = OccupancyGrid(GRID_SIZE, CELL_SIZE, None)
         self.sonar_model = nao_sonar_model()
     
@@ -25,6 +24,8 @@ class OccupancyGridMapper(AbstractMapper):
             self.grid.origin = loc.get_point()
         self.grid.update_grid_cells(loc, self.sonar_model)
         self.save_map()
+        if self.save_data:
+            self.save_update_data(position, sensors)
     
     # return the current map
     def get_map(self):

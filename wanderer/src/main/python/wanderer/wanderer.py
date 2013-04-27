@@ -200,9 +200,19 @@ class NullMapper(AbstractMapper):
 Mapper that does no actual mapping, but logs all data to file for future analysis
 '''
 class FileLoggingMapper(AbstractMapper):
-    def __init__(self, env):
+    def __init__(self, env, save_data=True):
         super(FileLoggingMapper, self).__init__(env)
-        self.logFilename = env.data_dir() + "/" + datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+        self.save_data = save_data
+        if self.save_data:
+            self.open_data_file()
+
+    # save the data to file
+    def update(self, position, sensors):
+        if self.save_data:
+            self.save_update_data(position, sensors)
+    
+    def open_data_file(self):
+        self.logFilename = self.env.data_dir() + "/" + datetime.datetime.now().strftime('%Y%m%d%H%M%S')
         self.env.log("Saving sensor data to "+self.logFilename)
         self.first_write = True
         try:
@@ -210,9 +220,8 @@ class FileLoggingMapper(AbstractMapper):
         except IOError:
             self.env.log("Failed to open file: "+self.logFilename)
             self.logFile = None
-
-    # save the data to file
-    def update(self, position, sensors):
+    
+    def save_update_data(self, position, sensors):
         data = { 'timestamp' : self.timestamp(),
                  'position' : position,
                  'leftSonar' : sensors.get_sensor('LeftSonar'),
