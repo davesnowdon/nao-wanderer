@@ -28,6 +28,7 @@ MEM_CURRENT_ACTIONS = "WandererActionsInProgress"
 MEM_COMPLETED_ACTIONS = "WandererActionsCompleted"
 MEM_CURRENT_EVENT = "WandererEvent"
 MEM_MAP = "WandererMap"
+MEM_LOCATION = "WandererLocation"
 
 DEFAULT_CONFIG_FILE = "wanderer"
 PROPERTY_PLANNER_CLASS = "plannerClass"
@@ -71,6 +72,13 @@ def init_state(env, startPos):
     env.memory.insertData(MEM_CURRENT_ACTIONS, "")
     env.memory.insertData(MEM_COMPLETED_ACTIONS, "")
 
+def shutdown(env):
+    planner = get_planner_instance(env)
+    planner.shutdown()
+    executor = get_executor_instance(env, None)
+    executor.shutdown()
+    mapper = get_mapper_instance(env)
+    mapper.shutdown()
 
 '''
 Base class for wanderer planning. 
@@ -94,6 +102,9 @@ class Planner(object):
             return method(event, state)
         except AttributeError:
             self.env.log("Unimplemented event handler for: "+event.name())
+
+    def shutdown(self):
+        pass
 
 
 '''
@@ -155,6 +166,9 @@ class PlanExecutor(object):
         pos = get_position(self.env)
         save_waypoint(self.env, pos)
 
+    def shutdown(self):
+        pass
+    
 '''
 Abstract mapping class
 '''
@@ -170,6 +184,9 @@ class AbstractMapper(object):
     # return the current map
     def get_map(self):
         return None
+
+    def shutdown(self):
+        pass
 
 '''
 Null mapper - does nothing, just a place holder for when no mapping is actually required
@@ -187,8 +204,9 @@ class FileLoggingMapper(AbstractMapper):
         super(FileLoggingMapper, self).__init__(env)
         self.logFilename = env.data_dir() + "/" + datetime.datetime.now().strftime('%Y%m%d%H%M%S')
         self.env.log("Saving sensor data to "+self.logFilename)
+        self.first_write = True
         try:
-            self.logFile = open(self.logFilename, 'a')
+            self.logFile = open(self.logFilename, 'r+')
         except IOError:
             self.env.log("Failed to open file: "+self.logFilename)
             self.logFile = None
@@ -202,20 +220,33 @@ class FileLoggingMapper(AbstractMapper):
         jstr = json.dumps(data)
         #self.env.log("Mapper.update: "+jstr)
         if self.logFile is not None:
-            self.logFile.write(jstr + ",\n")
+            if not self.first_write:
+                self.logFile.write(",\n")
+            self.logFile.write(jstr)
+            self.first_write = False
             self.logFile.flush()
 
     def timestamp(self):
         return datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')
     
-    def get_sensor_data(self):
-        fdata = ''
-        try:
-            with open(self.logFilename, 'r') as f:
-                fdata = f.read()
-        except IOError:
-            self.env.log("Failed to read data from: "+self.logFilename)
-        return '[\n' + fdata + ']\n'
+    # TODO should really block write access while doing this
+    def write_sensor_data_to_file(self, fp, buffer_size=1024):
+        if self.logFile:
+            self.logFile.seek(0)
+            fp.write('[\n')
+            while 1:
+                copy_buffer = self.logFile.read(buffer_size)
+                if copy_buffer:
+                    fp.write(copy_buffer)
+                else:
+                    break
+            fp.write(' ]\n')
+            self.logFile.seek(0, 2)
+
+    def shutdown(self):
+        if self.logFile:
+            self.logFile.close()
+
 
 '''
 Get the instance of the planner, creating an instance of the configured class if we don't already
@@ -316,10 +347,19 @@ def save_direction(env, hRad):
     env.memory.insertData(MEM_HEADING, hRad)
 
 '''
+Get the entire path
+'''
+def get_path(env):
+    return env.memory.getData(MEM_WALK_PATH)
+
+def set_path(env, path):
+    env.memory.insertData(MEM_WALK_PATH, path)
+
+'''
 Get the last position the robot was at by looking at the path
 '''
 def get_last_position(env):
-    path = env.memory.getData(MEM_WALK_PATH)
+    path = get_path(env)
     pos = None
     if not path is None:
         try:
@@ -336,10 +376,10 @@ def get_position(env):
     return env.motion.getPosition("Torso", 1, True)
 
 def save_waypoint(env, waypoint):
-    path = env.memory.getData(MEM_WALK_PATH)
+    path = get_path(env)
     if path is None:
         path = []
     path.append(waypoint)
     env.log("Path = "+str(path))
-    env.memory.insertData(MEM_WALK_PATH, path)
+    set_path(env, path)
 

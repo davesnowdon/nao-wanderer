@@ -3726,14 +3726,11 @@ class MyClass(GeneratedClass):
         pass
 
     def onInput_onStart(self, p):
-        self.do_imports()
-               
-        env = naoenv.make_environment(self)
+        self.do_imports() 
+        env = wanderer.make_wanderer_environment(self)
         # 1 = FRAME_WORLD
         pos = env.motion.getPosition("Head", 1, True)        
-        
         wanderer.init_state(env, pos)
-             
         self.onStopped()
 
     def onInput_onStop(self):
@@ -6750,7 +6747,7 @@ class MyClass(GeneratedClass):
                                     </BehaviorKeyframe>
                                     <BehaviorKeyframe name="End" index="80">
                                         <Diagram>
-                                            <Box name="Set Stiffness" id="7" tooltip="Stiffen the motors selected in parameters." x="324" y="92">
+                                            <Box name="Set Stiffness" id="7" tooltip="Stiffen the motors selected in parameters." x="334" y="84">
                                                 <bitmap>media/images/box/movement/stiffness.png</bitmap>
                                                 <script language="4">
                                                     <content>
@@ -9789,9 +9786,41 @@ class MyClass(GeneratedClass):
                                                 <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
                                                 <Parameter name="log" inherits_from_parent="0" content_type="3" value="End" default_value="" custom_choice="0" tooltip="" id="5" />
                                             </Box>
+                                            <Box name="Shutdown" id="1" tooltip="Enter tooltip here" x="481" y="91">
+                                                <bitmap>media/images/box/box-diagram.png</bitmap>
+                                                <script language="4">
+                                                    <content>
+                                                        <![CDATA[class MyClass(GeneratedClass):
+    def __init__(self):
+        GeneratedClass.__init__(self)
+        pass
+
+    def onLoad(self):
+        #~ puts code for box initialization here
+        pass
+
+    def onUnload(self):
+        #~ puts code for box cleanup here
+        pass
+
+    def onInput_onStart(self):
+        env = wanderer.make_wanderer_environment(self)
+        wanderer.shutdown(env)
+        self.onStopped()
+
+    def onInput_onStop(self):
+        self.onUnload()]]>
+</content>
+                                                </script>
+                                                <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
+                                                <Input name="onStart" type="1" type_size="1" nature="2" inner="0" tooltip="Box behavior starts when a signal is received on this input." id="2" />
+                                                <Input name="onStop" type="1" type_size="1" nature="3" inner="0" tooltip="Box behavior stops when a signal is received on this input." id="3" />
+                                                <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
+                                            </Box>
                                             <Link inputowner="3" indexofinput="2" outputowner="0" indexofoutput="1" />
                                             <Link inputowner="7" indexofinput="2" outputowner="3" indexofoutput="4" />
                                             <Link inputowner="8" indexofinput="2" outputowner="0" indexofoutput="1" />
+                                            <Link inputowner="1" indexofinput="2" outputowner="7" indexofoutput="3" />
                                         </Diagram>
                                     </BehaviorKeyframe>
                                     <BehaviorKeyframe name="StandUp" index="90">

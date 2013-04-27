@@ -4,7 +4,8 @@ Created on 19 Apr 2013
 @author: davesnowdon
 '''
 
-from wanderer import AbstractMapper
+from naoutil.jsonobj import to_json_string
+from wanderer import AbstractMapper, MEM_MAP
 from grid import OccupancyGrid, Location, GRID_SIZE, CELL_SIZE
 from robotstate import nao_sonar_model
 
@@ -23,7 +24,12 @@ class OccupancyGridMapper(AbstractMapper):
         if self.grid.origin is None:
             self.grid.origin = loc.get_point()
         self.grid.update_grid_cells(loc, self.sonar_model)
+        self.save_map()
     
     # return the current map
     def get_map(self):
         return self.grid
+    
+    # store the current map in ALMemory
+    def save_map(self):
+        self.env.memory.insertData(MEM_MAP, to_json_string(self.grid))
