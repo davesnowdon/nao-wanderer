@@ -158,7 +158,7 @@ class NaoRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     
     def do_actions_current(self, send_content, params):
         obj = wanderer.get_current_action(self.get_env())
-        self.json_response(send_content, obj)
+        self.json_response(send_content, [ obj ])
     
     def do_actions_planned(self, send_content, params):
         obj = wanderer.load_plan(self.get_env())
