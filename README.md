@@ -33,3 +33,12 @@ Storing state
 * WandererActionsInProgress - action currently being executed, NullAction if nothing to do (stored as JSON)
 * WandererActionsCompleted - actions that have completed exeuction  (stored as JSON)
 
+Web Interface
+-------------
+There is a web UI which is served from [ROBOT IP]:8080/index.html and the robot will also respond with JSON data to other requests such as:
+
+* /actions/done - return list of completed actions
+* /actions/planned - return list of planned acctions
+* /actions/current - return actions in progress
+* /raw/path - return the path the robot has followed
+* /map/json - return a representation of the current map of the environment that NAO is exploring
