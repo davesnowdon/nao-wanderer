@@ -55,7 +55,7 @@ class NaoRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def handle_request(self, send_content):
         self.server.env.log("REQUEST: "+self.path)
-        # list of possible actions, need to have longest paths first for matching to wotk
+        # list of possible actions, need to have longest paths first for matching to work
         responses = [
                      ('/actions/done' , self.do_actions_done),
                      ('/actions/planned' , self.do_actions_planned),
@@ -76,9 +76,9 @@ class NaoRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 # is action to take a function or literal
                 if hasattr(action, '__call__'):
                     params = rq[len(prefix):]
-                    action(params)
+                    action(send_content, params)
                 else:
-                    self.json_response(action)
+                    self.json_response(send_content, action)
                 requestCompleted = True
                 break
         if not requestCompleted:
