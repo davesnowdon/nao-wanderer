@@ -33,6 +33,10 @@
         #map_canvas {
             border: 1px solid black;
         }
+        #doing div.content {
+            max-height: 500px;
+            overflow-y: auto;
+        }
         #actions {
             float: right;
             width: 350px;
@@ -146,12 +150,12 @@
         }
 
         function loadMap() {
-            $.ajax({
+            return $.ajax({
                 url: '/map/json',
                 cache: false,
                 dataType: 'json',
                 success: function(data) {
-                    renderMap(data)
+                    map_data = data
                     $('#frame_counter span').text(frameCount++)
                 },
                 error: function(e, xhr) {
@@ -162,7 +166,7 @@
         
         function loadPath() {
             if (render_path_enabled) {
-                $.ajax({
+                return $.ajax({
                     url: '/raw/path',
                     cache: false,
                     dataType: 'json',
@@ -172,6 +176,8 @@
                     error: function(e, xhr) {
                     }
                 });
+            } else {
+                return null
             }
         }
         
@@ -232,36 +238,62 @@
         }
         
         function renderActionsList(container, actions) {
-             $(container).empty();
-             for (var i=0; i<actions.length; ++i) {
-                  $(container).append(renderAction(actions[i]));
+             $(container + ' div.content').empty();
+             if (actions.length > 0) {
+                 for (var i=0; i<actions.length; ++i) {
+                     $(container + ' div.content').append(renderAction(actions[i]));
+                 }
+             } else {
+                 $(container+" div.content").text("No actions");
              }
         }
         
         // change background colour of element and then change it back after a short delay
         function flashBlock(selection) {
-             
+             // TODO Briefly make container flash after update so people can see
+             // that it has changed
         }
         
         function loadActions(container, path) {
-        $.ajax({
+            return $.ajax({
                 url: path,
                 cache: false,
                 dataType: 'json',
                 success: function(data) {
-                    renderMap(data)
-                    flashBlock(container+" div.contents");
+                    renderActionsList(container, data)
+                    flashBlock(container+" div.content");
                 },
                 error: function(e, xhr) {
-                    $(container+" div.contents").text("Error");
+                    $(container+" div.content").text("Error");
                 }
             });
         }
 
+        function refreshMap() {
+            var nextRequest = function() {
+                if (map_data) {
+                    renderMap(map_data)
+                }
+                window.setTimeout(refreshMap, 2000);
+            }
+            
+            var mreq = loadMap();
+            var preq = loadPath();
+            if (preq) {
+                $.when(mreq, preq).done(nextRequest);
+            } else {
+                $.when(mreq).done(nextRequest);
+            }
+        }
+
         function refreshActions() {
-             loadActions("#planned", "/actions/planned");
-             loadActions("#doing", "/actions/current");
-             loadActions("#done", "/actions/done");
+            // only schedule next iteration once others have completed
+            $.when(loadActions("#planned", "/actions/planned"),
+                   loadActions("#doing", "/actions/current"),
+                   loadActions("#done", "/actions/done"))
+                .done(function() {
+                    window.setTimeout(refreshActions, 5000);
+                });
         }
         
         $(document).ready(function() {
@@ -276,8 +308,8 @@
                 }
             });
         
-            window.setInterval(function() { loadMap(); loadPath(); }, 1000);
-            window.setInterval(refreshActions, 5000);
+            window.setTimeout(refreshMap, 2000);
+            window.setTimeout(refreshActions, 5000);
             //map_data = jQuery.parseJSON(jsonData)
             //renderMap(map_data);
         });
