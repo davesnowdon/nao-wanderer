@@ -5,10 +5,11 @@ Created on Feb 10, 2013
 
 Code used to abstract away some of the details of the NAOqi environment
 so that clients do not need to pass around proxies and objects holding
-loggers. Instead code justs passes around NaoEnvironment instances
+loggers. Instead code just passes around NaoEnvironment instances
 '''
 import inspect
 import os
+import logging
 
 from naoqi import ALProxy
 
@@ -51,25 +52,34 @@ PROXY_SHORT_NAMES = { 'audioDevice' : 'ALAudioDevice',
 '''
 Hold information about the NAO environment and provide abstraction for logging
 '''
-# TODO build proxies on demand using python properties with custom getter
 class NaoEnvironment(object):
-    def __init__(self, box_, proxies_={}):
+    def __init__(self, box_, proxies={}, ipaddr=None, port=None):
         super(NaoEnvironment, self).__init__()
         self.box = box_
         self.app_name = None
         self.resources_path = None
         self.data_path = None
+        self.proxyAddr = ipaddr
+        self.proxyPort = port
+        self.logger = logging.getLogger("naoutil.naoenv.NaoEnvironment")
         # construct the set of proxies, ensuring that we use only valid long names
         self.proxies = { }
         longNames = PROXY_SHORT_NAMES.values()
-        for n, v in proxies_.iteritems():
+        for n, v in proxies.iteritems():
             if n in longNames:
                 self.proxies[n] = v
             elif n in PROXY_SHORT_NAMES:
                 self.proxies[PROXY_SHORT_NAMES[n]] = v
-    
+
+    # equivalent to logging at info level but also allows fallback to choreographe box 
+    # and print statements
     def log(self, msg):
-        self.box.log(msg)
+        if self.box:
+            self.box.log(msg)
+        elif self.logger:
+            self.logger.info(msg)
+        else:
+            print msg
     
     def _base_dir(self):
         this_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -101,11 +111,11 @@ class NaoEnvironment(object):
         # since, unlike the resources dir, the data dir is not part of the program it might not
         # already exist, so we create it if necessary
         if not os.path.exists(self.data_path):
-            self.log('Creating data dir: '+self.data_path)
+            self.logger.debug('Creating data dir: {}'.format(self.data_path))
             try:
                 os.makedirs(self.data_path)
             except OSError:
-                self.log("Failed to creat dir: "+self.data_path)
+                self.logger.error("Failed to create dir: {}".format(self.data_path))
         return self.data_path
     
     def set_data_dir(self, dir_name):
@@ -124,7 +134,8 @@ class NaoEnvironment(object):
                                basename, 
                                language_code, 
                                property_name)
-        self.log("Property '"+property_name+"' resolved to text '"+lt+"' in language '"+language_code+"'")
+        self.logger.debug("Property '{name}' resolved to text '{value}' in language '{lang}'"
+                          .format(name=property_name,value=lt,lang=language_code))
         return lt
 
     # read the named property from the specified config file. The file extension does not need
@@ -166,13 +177,17 @@ class NaoEnvironment(object):
 
     # invoke ALProxy to create the proxy we need
     def add_proxy(self, longName):
-        self.log('Creating proxy: ' + longName)
-        self.proxies[longName] = ALProxy(longName)
+        if self.proxyAddr and self.proxyPort:
+            self.logger.debug('Creating proxy: {name} at {proxy.proxyAddr}:{proxy.proxyPort}'.format(name=longName, proxy=self))
+            self.proxies[longName] = ALProxy(longName, self.proxyAddr, self.proxyPort)
+        else:
+            self.logger.debug('Creating proxy: {name}'.format(name=longName))
+            self.proxies[longName] = ALProxy(longName)
 
 '''
 Create environment object.
 Needs to be called from a process with an ALBroker running (for example
 within choreographe code)
 '''
-def make_environment(box_):
-    return NaoEnvironment(box_, {})
+def make_environment(box_, proxies={}, ipaddr=None, port=None):
+    return NaoEnvironment(box_, proxies, ipaddr, port)
