@@ -5,9 +5,7 @@ Created on 12 Apr 2013
 '''
 
 import os
-import posixpath
 import mimetypes
-import shutil
 import BaseHTTPServer
 
 from naoutil.jsonobj import to_json_file

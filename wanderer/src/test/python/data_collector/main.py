@@ -1,7 +1,7 @@
 '''
 Created on 19 May 2013
 
-Simple HTTP server to accept images and snesor data to assemble data sets
+Simple HTTP server to accept images and sensor data to assemble data sets
 
 @author: dsnowdon
 '''
