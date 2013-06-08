@@ -6451,7 +6451,7 @@ class MyClass(GeneratedClass):
     def onInput_onStart(self):
         self.running = True   
         self.env = wanderer.make_wanderer_environment(self)
-        self.mapper = wanderer.get_mapper_instance(self.env)
+        #self.mapper = wanderer.get_mapper_instance(self.env)
         
         while self.running:
             self.do_map_update()
@@ -6469,7 +6469,8 @@ class MyClass(GeneratedClass):
         rs = robotstate.right_sonar(self.env)
         sensors =  robotstate.Sensors ({ 'LeftSonar' : ls, 
                                          'RightSonar' : rs })
-        self.mapper.update(pos, sensors)]]>
+        #self.mapper.update(pos, sensors)
+        wanderer.run_updaters(self.env, pos, sensors)]]>
 </content>
                                                                     </script>
                                                                     <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />

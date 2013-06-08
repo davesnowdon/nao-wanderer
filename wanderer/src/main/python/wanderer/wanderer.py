@@ -52,6 +52,7 @@ WANDERER_NAME = "wanderer"
 planner_instance = None
 executor_instance = None
 mapper_instance = None
+updater_instances = None
 # END GLOBALS 
 
 def init_state(env, startPos):
@@ -305,6 +306,31 @@ def get_mapper_instance(env):
         klass = find_class(fqcn)
         mapper_instance = klass(env)
     return mapper_instance
+
+def run_updaters(env, position, sensors):
+    # do the map update
+    mapper = get_mapper_instance(env)
+    mapper.update(position, sensors)
+    
+    # run any other updaters
+    updater_instances = make_updaters(env)
+             
+    for updater in updater_instances:
+        updater. update(position, sensors)
+    
+def make_updaters(env):
+    global updater_instances
+    if not updater_instances:
+        updater_instances = []
+        fqcn = env.get_property(DEFAULT_CONFIG_FILE, "updaterClass")
+        if fqcn:
+            env.log("Creating a new updater instance of {}".format(fqcn))
+            klass = find_class(fqcn)
+            updater = klass(env)
+            if updater:
+                updater_instances.append(updater)
+    
+    return updater_instances
 
 def make_wanderer_environment(box_):
     env = make_environment(box_)
