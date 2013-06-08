@@ -4,6 +4,7 @@ Created on Jan 19, 2013
 @author: dsnowdon
 '''
 
+import os
 import datetime
 import json
 
@@ -95,13 +96,18 @@ class Planner(object):
         log_plan(self.env, "New plan", plan)
         return plan
 
+    # return true if this event should cause the current plan to be executed and
+    # a new plan created to react to it
+    def does_event_interrupt_plan(self, event, state):
+        return True
+
     def dispatch(self, event, state):
         methodName = 'handle'+ event.name()
         try:
             method = getattr(self, methodName)
             return method(event, state)
         except AttributeError:
-            self.env.log("Unimplemented event handler for: "+event.name())
+            self.env.log("Unimplemented event handler for: {}".format(event.name()))
 
     def shutdown(self):
         pass
@@ -124,7 +130,7 @@ class PlanExecutor(object):
         self.env.log("perform next action")
         # save completed action to history if there is one
         completedAction = get_current_action(self.env)
-        self.env.log("Completed action = "+repr(completedAction))
+        self.env.log("Completed action = {}".format(repr(completedAction)))
         if not completedAction is None:
             if not isinstance(completedAction, NullAction):
                 push_completed_action(self.env, completedAction)
@@ -143,7 +149,7 @@ class PlanExecutor(object):
             self.env.log("No next action")
             self.actionExecutor.all_done()
         else:
-            self.env.log("Next action = "+repr(action))
+            self.env.log("Next action = {}".format(repr(action)))
             set_current_action(self.env, action)
             self.actionExecutor.do_action(action)
         self.env.log("perform_next_action done")
@@ -212,13 +218,14 @@ class FileLoggingMapper(AbstractMapper):
             self.save_update_data(position, sensors)
     
     def open_data_file(self):
-        self.logFilename = self.env.data_dir() + "/" + datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-        self.env.log("Saving sensor data to "+self.logFilename)
+        self.logFilename = os.path.join(self.env.data_dir(), 
+                                        datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
+        self.env.log("Saving sensor data to {}".format(self.logFilename))
         self.first_write = True
         try:
             self.logFile = open(self.logFilename, 'r+')
         except IOError:
-            self.env.log("Failed to open file: "+self.logFilename)
+            self.env.log("Failed to open file: {}".format(self.logFilename))
             self.logFile = None
     
     def save_update_data(self, position, sensors):
@@ -265,7 +272,7 @@ def get_planner_instance(env):
     global planner_instance
     if planner_instance is None:
         fqcn = env.get_property(DEFAULT_CONFIG_FILE, PROPERTY_PLANNER_CLASS, DEFAULT_PLANNER_CLASS)
-        env.log("Creating a new planner instance of "+fqcn)
+        env.log("Creating a new planner instance of {}".format(fqcn))
         klass = find_class(fqcn)
         planner_instance = klass(env)
     return planner_instance
@@ -278,7 +285,7 @@ def get_executor_instance(env, actionExecutor):
     global executor_instance
     if executor_instance is None:
         fqcn = env.get_property(DEFAULT_CONFIG_FILE, PROPERTY_EXECUTOR_CLASS, DEFAULT_EXECUTOR_CLASS)
-        env.log("Creating a new executor instance of "+fqcn)
+        env.log("Creating a new executor instance of {}".format(fqcn))
         klass = find_class(fqcn)
         executor_instance = klass(env, actionExecutor)
     # NOT THREAD SAFE
@@ -294,7 +301,7 @@ def get_mapper_instance(env):
     global mapper_instance
     if mapper_instance is None:
         fqcn = env.get_property(DEFAULT_CONFIG_FILE, PROPERTY_MAPPER_CLASS, DEFAULT_MAPPER_CLASS)
-        env.log("Creating a new mapper instance of "+fqcn)
+        env.log("Creating a new mapper instance of {}".format(fqcn))
         klass = find_class(fqcn)
         mapper_instance = klass(env)
     return mapper_instance

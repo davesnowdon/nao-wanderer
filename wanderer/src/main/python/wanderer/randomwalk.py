@@ -7,7 +7,7 @@ import math
 from random import Random
 
 from naoutil.general import class_to_name
-from util.mathutil import to_radians, is_zero
+from util.mathutil import is_zero
 from robotstate import NAO_SONAR_MIN_RANGE, NAO_SONAR_MAX_RANGE
 from event import *
 from action import *
@@ -19,6 +19,9 @@ class RandomWalk(Planner):
         super(RandomWalk, self).__init__(env)
         self.rng = Random()
 
+    def does_event_interrupt_plan(self, event, state):
+        return True
+
     def handleObstacleDetected(self, event, state):
         if event.is_bumper():
             plan = [WalkStraight(-0.2)]
@@ -26,13 +29,13 @@ class RandomWalk(Planner):
             plan = []
         (tmin, tmax) = event_to_obstruction_direction(event)
         turn = self.rng.uniform(tmin, tmax)
-        self.env.log("Random turn value = "+str(turn)+" from ("+str(tmin)+", "+str(tmax)+")")
+        self.env.log("Random turn value = {0} from({1},{2})".format(str(turn), str(tmin), str(tmax)))
         plan.append(Turn(turn))
         plan.append(WalkForwardsIndefinitely())
         return plan
 
     def handleStart(self, event, state):
-        direction = to_radians(self.rng.randint(0, 360))
+        direction = math.radians(self.rng.randint(0, 360))
         return [Turn(direction), WalkForwardsIndefinitely()]
 
     # continue with the action that was in progress
