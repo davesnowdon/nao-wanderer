@@ -2,8 +2,8 @@
    "plannerClass" : "wanderer.randomwalk.RandomWalk",
    "executorClass" : "wanderer.wanderer.PlanExecutor",
    "mapperClass" : "wanderer.grid_mapper.OccupancyGridMapper",
-   "updaterClass" : "wanderer.dataposter.DataPoster",
+   "updaterClasses" : [ "wanderer.dataposter.DataPoster" ],
    "httpPort" : 8080,
-   "dataCollectorHost" : "",
+   "dataCollectorHost" : "192.168.0.2",
    "dataCollectorPort" : 8080
 }

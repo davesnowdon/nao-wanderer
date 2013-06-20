@@ -3676,39 +3676,6 @@ class MyClass(GeneratedClass):
                                                 <Parameter name="Motors stiffness (%)" inherits_from_parent="0" content_type="1" value="100" default_value="100" min="0" max="100" tooltip="Stiffness value the motors are set to." id="9" />
                                                 <Parameter name="Duration (s)" inherits_from_parent="0" content_type="2" value="1" default_value="1" min="0.02" max="10" tooltip="How much time to go to the max/min stiffness in seconds." id="10" />
                                             </Box>
-                                            <Box name="Log" id="8" tooltip="Enter tooltip here" x="188" y="27">
-                                                <bitmap>media/images/box/box-diagram.png</bitmap>
-                                                <script language="4">
-                                                    <content>
-                                                        <![CDATA[class MyClass(GeneratedClass):
-    def __init__(self):
-        GeneratedClass.__init__(self)
-        pass
-
-    def onLoad(self):
-        #~ puts code for box initialization here
-        pass
-
-    def onUnload(self):
-        #~ puts code for box cleanup here
-        pass
-
-    def onInput_onStart(self):
-        self.log("START: " + self.getParameter("log"))
-        self.onStopped() #~ activate output of the box
-
-
-    def onInput_onStop(self):
-        self.log("STOP: " + self.getParameter("log"))
-        self.onUnload()]]>
-</content>
-                                                </script>
-                                                <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
-                                                <Input name="onStart" type="1" type_size="1" nature="2" inner="0" tooltip="Box behavior starts when a signal is received on this input." id="2" />
-                                                <Input name="onStop" type="1" type_size="1" nature="3" inner="0" tooltip="Box behavior stops when a signal is received on this input." id="3" />
-                                                <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
-                                                <Parameter name="log" inherits_from_parent="0" content_type="3" value="Init" default_value="" custom_choice="0" tooltip="" id="5" />
-                                            </Box>
                                             <Box name="InitState" id="9" tooltip="Enter tooltip here" x="133" y="165">
                                                 <bitmap>media/images/box/box-diagram.png</bitmap>
                                                 <script language="4">
@@ -3769,7 +3736,6 @@ class MyClass(GeneratedClass):
                                             <Link inputowner="4" indexofinput="2" outputowner="1" indexofoutput="4" />
                                             <Link inputowner="0" indexofinput="4" outputowner="1" indexofoutput="5" />
                                             <Link inputowner="1" indexofinput="2" outputowner="7" indexofoutput="3" />
-                                            <Link inputowner="8" indexofinput="2" outputowner="0" indexofoutput="1" />
                                             <Link inputowner="2" indexofinput="2" outputowner="4" indexofoutput="4" />
                                             <Link inputowner="9" indexofinput="2" outputowner="0" indexofoutput="1" />
                                             <Link inputowner="7" indexofinput="2" outputowner="9" indexofoutput="4" />
@@ -3813,41 +3779,7 @@ class MyClass(GeneratedClass):
                                                 <Input name="onGo" type="1" type_size="1" nature="1" inner="0" tooltip="Parent timeline gotoAndStop when a signal is received on this input." id="2" />
                                                 <Parameter name="Frame name" inherits_from_parent="0" content_type="3" value="Explore" default_value="" custom_choice="0" tooltip="Name of the frame you want to go to." id="3" />
                                             </Box>
-                                            <Box name="Log" id="8" tooltip="Enter tooltip here" x="119" y="152">
-                                                <bitmap>media/images/box/box-diagram.png</bitmap>
-                                                <script language="4">
-                                                    <content>
-                                                        <![CDATA[class MyClass(GeneratedClass):
-    def __init__(self):
-        GeneratedClass.__init__(self)
-        pass
-
-    def onLoad(self):
-        #~ puts code for box initialization here
-        pass
-
-    def onUnload(self):
-        #~ puts code for box cleanup here
-        pass
-
-    def onInput_onStart(self):
-        self.log("START: " + self.getParameter("log"))
-        self.onStopped() #~ activate output of the box
-
-
-    def onInput_onStop(self):
-        self.log("STOP: " + self.getParameter("log"))
-        self.onUnload()]]>
-</content>
-                                                </script>
-                                                <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
-                                                <Input name="onStart" type="1" type_size="1" nature="2" inner="0" tooltip="Box behavior starts when a signal is received on this input." id="2" />
-                                                <Input name="onStop" type="1" type_size="1" nature="3" inner="0" tooltip="Box behavior stops when a signal is received on this input." id="3" />
-                                                <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
-                                                <Parameter name="log" inherits_from_parent="0" content_type="3" value="Main" default_value="" custom_choice="0" tooltip="" id="5" />
-                                            </Box>
                                             <Link inputowner="7" indexofinput="2" outputowner="0" indexofoutput="1" />
-                                            <Link inputowner="8" indexofinput="2" outputowner="0" indexofoutput="1" />
                                         </Diagram>
                                     </BehaviorKeyframe>
                                     <BehaviorKeyframe name="Explore" index="20">
@@ -6709,41 +6641,7 @@ class MyClass(GeneratedClass):
                                                     </ActuatorList>
                                                 </Timeline>
                                             </Box>
-                                            <Box name="Log" id="14" tooltip="Enter tooltip here" x="63" y="157">
-                                                <bitmap>media/images/box/box-diagram.png</bitmap>
-                                                <script language="4">
-                                                    <content>
-                                                        <![CDATA[class MyClass(GeneratedClass):
-    def __init__(self):
-        GeneratedClass.__init__(self)
-        pass
-
-    def onLoad(self):
-        #~ puts code for box initialization here
-        pass
-
-    def onUnload(self):
-        #~ puts code for box cleanup here
-        pass
-
-    def onInput_onStart(self):
-        self.log("START: " + self.getParameter("log"))
-        self.onStopped() #~ activate output of the box
-
-
-    def onInput_onStop(self):
-        self.log("STOP: " + self.getParameter("log"))
-        self.onUnload()]]>
-</content>
-                                                </script>
-                                                <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
-                                                <Input name="onStart" type="1" type_size="1" nature="2" inner="0" tooltip="Box behavior starts when a signal is received on this input." id="2" />
-                                                <Input name="onStop" type="1" type_size="1" nature="3" inner="0" tooltip="Box behavior stops when a signal is received on this input." id="3" />
-                                                <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
-                                                <Parameter name="log" inherits_from_parent="0" content_type="3" value="Explore" default_value="" custom_choice="0" tooltip="" id="5" />
-                                            </Box>
                                             <Link inputowner="11" indexofinput="2" outputowner="0" indexofoutput="1" />
-                                            <Link inputowner="14" indexofinput="2" outputowner="0" indexofoutput="1" />
                                         </Diagram>
                                     </BehaviorKeyframe>
                                     <BehaviorKeyframe name="End" index="80">
@@ -9754,39 +9652,6 @@ class MyClass(GeneratedClass):
                                                 </Timeline>
                                                 <Resource name="All motors" type="Lock" timeout="0" />
                                             </Box>
-                                            <Box name="Log" id="8" tooltip="Enter tooltip here" x="65" y="190">
-                                                <bitmap>media/images/box/box-diagram.png</bitmap>
-                                                <script language="4">
-                                                    <content>
-                                                        <![CDATA[class MyClass(GeneratedClass):
-    def __init__(self):
-        GeneratedClass.__init__(self)
-        pass
-
-    def onLoad(self):
-        #~ puts code for box initialization here
-        pass
-
-    def onUnload(self):
-        #~ puts code for box cleanup here
-        pass
-
-    def onInput_onStart(self):
-        self.log("START: " + self.getParameter("log"))
-        self.onStopped() #~ activate output of the box
-
-
-    def onInput_onStop(self):
-        self.log("STOP: " + self.getParameter("log"))
-        self.onUnload()]]>
-</content>
-                                                </script>
-                                                <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
-                                                <Input name="onStart" type="1" type_size="1" nature="2" inner="0" tooltip="Box behavior starts when a signal is received on this input." id="2" />
-                                                <Input name="onStop" type="1" type_size="1" nature="3" inner="0" tooltip="Box behavior stops when a signal is received on this input." id="3" />
-                                                <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
-                                                <Parameter name="log" inherits_from_parent="0" content_type="3" value="End" default_value="" custom_choice="0" tooltip="" id="5" />
-                                            </Box>
                                             <Box name="Shutdown" id="1" tooltip="Enter tooltip here" x="481" y="91">
                                                 <bitmap>media/images/box/box-diagram.png</bitmap>
                                                 <script language="4">
@@ -9820,7 +9685,6 @@ class MyClass(GeneratedClass):
                                             </Box>
                                             <Link inputowner="3" indexofinput="2" outputowner="0" indexofoutput="1" />
                                             <Link inputowner="7" indexofinput="2" outputowner="3" indexofoutput="4" />
-                                            <Link inputowner="8" indexofinput="2" outputowner="0" indexofoutput="1" />
                                             <Link inputowner="1" indexofinput="2" outputowner="7" indexofoutput="3" />
                                         </Diagram>
                                     </BehaviorKeyframe>
@@ -13326,44 +13190,10 @@ class MyClass(GeneratedClass):
                                                 <Parameter name="Motors stiffness (%)" inherits_from_parent="0" content_type="1" value="100" default_value="100" min="0" max="100" tooltip="Stiffness value the motors are set to." id="9" />
                                                 <Parameter name="Duration (s)" inherits_from_parent="0" content_type="2" value="1" default_value="1" min="0.02" max="10" tooltip="How much time to go to the max/min stiffness in seconds." id="10" />
                                             </Box>
-                                            <Box name="Log" id="8" tooltip="Enter tooltip here" x="120" y="19">
-                                                <bitmap>media/images/box/box-diagram.png</bitmap>
-                                                <script language="4">
-                                                    <content>
-                                                        <![CDATA[class MyClass(GeneratedClass):
-    def __init__(self):
-        GeneratedClass.__init__(self)
-        pass
-
-    def onLoad(self):
-        #~ puts code for box initialization here
-        pass
-
-    def onUnload(self):
-        #~ puts code for box cleanup here
-        pass
-
-    def onInput_onStart(self):
-        self.log("START: " + self.getParameter("log"))
-        self.onStopped() #~ activate output of the box
-
-
-    def onInput_onStop(self):
-        self.log("STOP: " + self.getParameter("log"))
-        self.onUnload()]]>
-</content>
-                                                </script>
-                                                <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
-                                                <Input name="onStart" type="1" type_size="1" nature="2" inner="0" tooltip="Box behavior starts when a signal is received on this input." id="2" />
-                                                <Input name="onStop" type="1" type_size="1" nature="3" inner="0" tooltip="Box behavior stops when a signal is received on this input." id="3" />
-                                                <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
-                                                <Parameter name="log" inherits_from_parent="0" content_type="3" value="StandUp" default_value="" custom_choice="0" tooltip="" id="5" />
-                                            </Box>
                                             <Link inputowner="1" indexofinput="2" outputowner="2" indexofoutput="4" />
                                             <Link inputowner="0" indexofinput="4" outputowner="2" indexofoutput="5" />
                                             <Link inputowner="2" indexofinput="2" outputowner="7" indexofoutput="3" />
                                             <Link inputowner="7" indexofinput="2" outputowner="0" indexofoutput="1" />
-                                            <Link inputowner="8" indexofinput="2" outputowner="0" indexofoutput="1" />
                                         </Diagram>
                                     </BehaviorKeyframe>
                                 </BehaviorLayer>

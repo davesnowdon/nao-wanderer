@@ -16,6 +16,7 @@ class TestWanderer(unittest.TestCase):
         updaters = make_updaters(env)
         print "updaters = {}".format(updaters)
         self.assertTrue(updaters, "updaters should not be none")
+        self.assertEqual(1, len(updaters), "Should be one updater class")
 
 
 if __name__ == "__main__":

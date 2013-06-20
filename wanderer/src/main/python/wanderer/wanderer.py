@@ -5,8 +5,10 @@ Created on Jan 19, 2013
 '''
 
 import os
+import tempfile
 import datetime
 import json
+import logging
 
 from naoutil.jsonobj import to_json_string, from_json_string
 from naoutil.general import find_class
@@ -38,8 +40,11 @@ PROPERTY_EXECUTOR_CLASS = "executorClass"
 DEFAULT_EXECUTOR_CLASS = "wanderer.wanderer.PlanExecutor"
 PROPERTY_MAPPER_CLASS = "mapperClass"
 DEFAULT_MAPPER_CLASS = "wanderer.wanderer.NullMapper"
+PROPERTY_UPDATER_CLASSES = "updaterClasses"
 PROPERTY_HTTP_PORT = "httpPort"
 DEFAULT_HTTP_PORT = 8080
+PROPERTY_DATA_COLLECTOR_HOST = "dataCollectorHost"
+PROPERTY_DATA_COLLECTOR_PORT = "dataCollectorPort"
 STATIC_WEB_DIR = "web"
 
 CENTRE_BIAS = False
@@ -54,6 +59,8 @@ executor_instance = None
 mapper_instance = None
 updater_instances = None
 # END GLOBALS 
+
+wanderer_logger = logging.getLogger("wanderer.wanderer")
 
 def init_state(env, startPos):
     # getData & removeData throw errors if the value is not set, 
@@ -77,10 +84,16 @@ def init_state(env, startPos):
 def shutdown(env):
     planner = get_planner_instance(env)
     planner.shutdown()
+
     executor = get_executor_instance(env, None)
     executor.shutdown()
+
     mapper = get_mapper_instance(env)
     mapper.shutdown()
+
+    updater_instances = get_updaters(env)
+    for updater in updater_instances:
+        updater.shutdown()
 
 '''
 Base class for wanderer planning. 
@@ -219,8 +232,7 @@ class FileLoggingMapper(AbstractMapper):
             self.save_update_data(position, sensors)
     
     def open_data_file(self):
-        self.logFilename = os.path.join(self.env.data_dir(), 
-                                        datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
+        self.logFilename = tempfile.mktemp()
         self.env.log("Saving sensor data to {}".format(self.logFilename))
         self.first_write = True
         try:
@@ -230,13 +242,14 @@ class FileLoggingMapper(AbstractMapper):
             self.logFile = None
     
     def save_update_data(self, position, sensors):
-        data = { 'timestamp' : self.timestamp(),
-                 'position' : position,
-                 'leftSonar' : sensors.get_sensor('LeftSonar'),
-                 'rightSonar' : sensors.get_sensor('RightSonar') }
-        jstr = json.dumps(data)
-        #self.env.log("Mapper.update: "+jstr)
-        if self.logFile is not None:
+        if self.logFile:
+            data = { 'timestamp' : self.timestamp(),
+                     'position' : position,
+                     'leftSonar' : sensors.get_sensor('LeftSonar'),
+                     'rightSonar' : sensors.get_sensor('RightSonar') }
+            jstr = json.dumps(data)
+            #self.env.log("Mapper.update: "+jstr)
+
             if not self.first_write:
                 self.logFile.write(",\n")
             self.logFile.write(jstr)
@@ -271,7 +284,7 @@ have a planner instance
 '''
 def get_planner_instance(env):
     global planner_instance
-    if planner_instance is None:
+    if not planner_instance:
         fqcn = env.get_property(DEFAULT_CONFIG_FILE, PROPERTY_PLANNER_CLASS, DEFAULT_PLANNER_CLASS)
         env.log("Creating a new planner instance of {}".format(fqcn))
         klass = find_class(fqcn)
@@ -284,7 +297,7 @@ file if necessary.
 '''
 def get_executor_instance(env, actionExecutor):
     global executor_instance
-    if executor_instance is None:
+    if not executor_instance:
         fqcn = env.get_property(DEFAULT_CONFIG_FILE, PROPERTY_EXECUTOR_CLASS, DEFAULT_EXECUTOR_CLASS)
         env.log("Creating a new executor instance of {}".format(fqcn))
         klass = find_class(fqcn)
@@ -300,7 +313,7 @@ Get the instance of the mapper to use
 '''
 def get_mapper_instance(env):
     global mapper_instance
-    if mapper_instance is None:
+    if not mapper_instance:
         fqcn = env.get_property(DEFAULT_CONFIG_FILE, PROPERTY_MAPPER_CLASS, DEFAULT_MAPPER_CLASS)
         env.log("Creating a new mapper instance of {}".format(fqcn))
         klass = find_class(fqcn)
@@ -308,27 +321,36 @@ def get_mapper_instance(env):
     return mapper_instance
 
 def run_updaters(env, position, sensors):
+    global wanderer_logger
     # do the map update
     mapper = get_mapper_instance(env)
-    mapper.update(position, sensors)
+    if mapper:
+        try:
+            mapper.update(position, sensors)
+        except TypeError as e:
+            wanderer_logger.error("Error running mapper {0} update: {1}".format(repr(mapper), e))
     
     # run any other updaters
-    updater_instances = make_updaters(env)
+    updater_instances = get_updaters(env)
              
     for updater in updater_instances:
-        updater. update(position, sensors)
+        try:
+            updater. update(position, sensors)
+        except TypeError as e:
+            wanderer_logger.error("Error running updater {0} update: {1}".format(repr(updater), e))
     
-def make_updaters(env):
+def get_updaters(env):
     global updater_instances
     if not updater_instances:
         updater_instances = []
-        fqcn = env.get_property(DEFAULT_CONFIG_FILE, "updaterClass")
-        if fqcn:
-            env.log("Creating a new updater instance of {}".format(fqcn))
-            klass = find_class(fqcn)
-            updater = klass(env)
-            if updater:
-                updater_instances.append(updater)
+        fqcns = env.get_property(DEFAULT_CONFIG_FILE, PROPERTY_UPDATER_CLASSES)
+        if fqcns:
+            for fqcn in fqcns:
+                env.log("Creating a new updater instance of {}".format(fqcn))
+                klass = find_class(fqcn)
+                updater = klass(env)
+                if updater:
+                    updater_instances.append(updater)
     
     return updater_instances
 
