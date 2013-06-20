@@ -21,7 +21,7 @@ class CollectorRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         global DATA_DIR
         global PREFIX
         global INDEX
-        print "got POST"
+        print "got POST\n"
         ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
         if ctype == 'multipart/form-data':
             postvars = cgi.parse_multipart(self.rfile, pdict)
@@ -30,7 +30,7 @@ class CollectorRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             postvars = urlparse.parse_qs(self.rfile.read(length), keep_blank_values=1)
         else:
             postvars = {}
-        print postvars['sensor']
+        print postvars['sensordata']
         filedata = postvars['fileupload']
         if filedata:
             filename = "{prefix}-{index}.jpg".format(prefix=PREFIX, index=INDEX)
@@ -38,14 +38,13 @@ class CollectorRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             with open(path, "wb") as out:
                 out.write(''.join(filedata))
             
-        position = postvars['position']
-        sensordata = postvars['sensor']
+        sensordata = postvars['sensordata']
         if sensordata:
+            print "Sensordata: {}\n".format(sensordata)
             json_filename = "{prefix}-{index}.json".format(prefix=PREFIX, index=INDEX)
             path = os.path.join(DATA_DIR, json_filename)
             with open(path, "w") as out:
-                out.write("Position: {}\n".format(position))
-                out.write("Sensor: {}\n".format(sensordata))
+                out.write("{}\n".format(sensordata))
 
         INDEX = INDEX + 1
         
