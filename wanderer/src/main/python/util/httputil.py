@@ -4,9 +4,6 @@ Created on 8 Jun 2013
 @author: dsnowdon
 '''
 
-import sys
-import os
-import inspect
 import httplib, mimetypes
 import socket
 
