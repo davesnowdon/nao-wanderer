@@ -22,7 +22,6 @@ from naoutil.naoenv import make_environment
 Here we define the memory locations used to store state
 '''
 MEM_SECURITY_DISTANCE = "WandererSecurityDistance"
-MEM_LOOK_FOR_FACES = "WandererLookForFaces"
 MEM_HEADING = "WandererWalkHeading"
 MEM_WALK_PATH = "WandererWalkPath"
 MEM_DETECTED_FACE_DIRECTION = "WandererFaceDirection"
@@ -32,6 +31,8 @@ MEM_COMPLETED_ACTIONS = "WandererActionsCompleted"
 MEM_CURRENT_EVENT = "WandererEvent"
 MEM_MAP = "WandererMap"
 MEM_LOCATION = "WandererLocation"
+
+EVENT_LOOK_FOR_PEOPLE = "WandererEventLookForPeople"
 
 DEFAULT_CONFIG_FILE = "wanderer"
 PROPERTY_PLANNER_CLASS = "plannerClass"
@@ -45,6 +46,7 @@ PROPERTY_HTTP_PORT = "httpPort"
 DEFAULT_HTTP_PORT = 8080
 PROPERTY_DATA_COLLECTOR_HOST = "dataCollectorHost"
 PROPERTY_DATA_COLLECTOR_PORT = "dataCollectorPort"
+PROPERTY_LOOK_FOR_PEOPLE = "lookForPeople"
 STATIC_WEB_DIR = "web"
 
 CENTRE_BIAS = False
@@ -63,6 +65,9 @@ updater_instances = None
 wanderer_logger = logging.getLogger("wanderer.wanderer")
 
 def init_state(env, startPos):
+    # declare events
+    env.memory.declareEvent(EVENT_LOOK_FOR_PEOPLE);
+    
     # getData & removeData throw errors if the value is not set, 
     # so ensure all the memory locations we want to use are initialised
     env.memory.insertData(MEM_CURRENT_EVENT, None)
@@ -70,8 +75,14 @@ def init_state(env, startPos):
     # set "security distance"
     env.memory.insertData(MEM_SECURITY_DISTANCE, "0.25")
 
-    # look for faces by default
-    env.memory.insertData(MEM_LOOK_FOR_FACES, True)
+    # should we look for people as we go?
+    lookForPeople = env.get_property(DEFAULT_CONFIG_FILE, PROPERTY_LOOK_FOR_PEOPLE)
+    if lookForPeople:
+        env.memory.raiseEvent(EVENT_LOOK_FOR_PEOPLE, True)
+        env.log("Looking for people")
+    else:
+        env.memory.raiseEvent(EVENT_LOOK_FOR_PEOPLE, False)
+        env.log("Not looking for people")
 
     # set initial position (in list of positions)
     env.memory.insertData(MEM_WALK_PATH, [startPos])

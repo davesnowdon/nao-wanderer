@@ -3784,7 +3784,7 @@ class MyClass(GeneratedClass):
                                     </BehaviorKeyframe>
                                     <BehaviorKeyframe name="Explore" index="20">
                                         <Diagram scale="100">
-                                            <Box name="Explore (FSM)" id="11" tooltip="Enter tooltip here" x="61" y="38">
+                                            <Box name="Explore (FSM)" id="11" tooltip="Enter tooltip here" x="66" y="34">
                                                 <bitmap>media/images/box/box-diagram.png</bitmap>
                                                 <script language="4">
                                                     <content>
@@ -5560,39 +5560,6 @@ class MyClass(GeneratedClass):
                                                         </BehaviorKeyframe>
                                                         <BehaviorKeyframe name="LookingForFaces" index="30">
                                                             <Diagram>
-                                                                <Box name="Log" id="8" tooltip="Enter tooltip here" x="80" y="446">
-                                                                    <bitmap>media/images/box/box-diagram.png</bitmap>
-                                                                    <script language="4">
-                                                                        <content>
-                                                                            <![CDATA[class MyClass(GeneratedClass):
-    def __init__(self):
-        GeneratedClass.__init__(self)
-        pass
-
-    def onLoad(self):
-        #~ puts code for box initialization here
-        pass
-
-    def onUnload(self):
-        #~ puts code for box cleanup here
-        pass
-
-    def onInput_onStart(self):
-        self.log("START: " + self.getParameter("log"))
-        self.onStopped() #~ activate output of the box
-
-
-    def onInput_onStop(self):
-        self.log("STOP: " + self.getParameter("log"))
-        self.onUnload()]]>
-</content>
-                                                                    </script>
-                                                                    <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
-                                                                    <Input name="onStart" type="1" type_size="1" nature="2" inner="0" tooltip="Box behavior starts when a signal is received on this input." id="2" />
-                                                                    <Input name="onStop" type="1" type_size="1" nature="3" inner="0" tooltip="Box behavior stops when a signal is received on this input." id="3" />
-                                                                    <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
-                                                                    <Parameter name="log" inherits_from_parent="0" content_type="3" value="Walk Randomly / LookingForFaces" default_value="" custom_choice="0" tooltip="" id="5" />
-                                                                </Box>
                                                                 <Box name="Find faces" id="2" tooltip="Detect people&apos;s face and return the number of detected faces.&#x0A;&#x0A;Note: Detect even faces that are not registered in NAO&apos;s faces database (that&#x0A;you can teach him with the Learn Face box)." x="286" y="16">
                                                                     <bitmap>media/images/box/interaction/face.png</bitmap>
                                                                     <script language="4">
@@ -5818,12 +5785,11 @@ class MyClass(GeneratedClass):
     # TODO need to implement face detected handler
     def onInput_onStart(self, p):
         # imports already done on behaviour init
-        #self.env = wanderer.make_wanderer_environment(self)
-        #fdevent = event.FaceDetected(p)
-        #self.env.log("Storing FaceDetected event: "+repr(fdevent))
-        #wanderer.save_event(self.env, fdevent)              
-        #self.onStopped()
-        pass
+        self.env = wanderer.make_wanderer_environment(self)
+        fdevent = event.FaceDetected(p)
+        self.env.log("Storing FaceDetected event: "+repr(fdevent))
+        wanderer.save_event(self.env, fdevent)              
+        self.onStopped()
 
     def onInput_onStop(self):
         self.onUnload() #~ it is recommanded to call onUnload of this box in a onStop method, as the code written in onUnload is used to stop the box as well
@@ -6074,7 +6040,7 @@ class MyClass(GeneratedClass):
                                                                         </BehaviorLayer>
                                                                     </Timeline>
                                                                 </Box>
-                                                                <Box name="Wait" id="5" tooltip="Wait a moment before sending a signal on the output. The wait can be stopped any&#x0A;time. You may restart it any time, and it will start again." x="285" y="342">
+                                                                <Box name="Wait" id="5" tooltip="Wait a moment before sending a signal on the output. The wait can be stopped any&#x0A;time. You may restart it any time, and it will start again." x="214" y="349">
                                                                     <bitmap>media/images/box/wait.png</bitmap>
                                                                     <script language="4">
                                                                         <content>
@@ -6161,7 +6127,72 @@ class MyClass(GeneratedClass):
                                                                     <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="6" />
                                                                     <Output name="onTriggered" type="1" type_size="1" nature="2" inner="0" tooltip="" id="7" />
                                                                 </Box>
-                                                                <Link inputowner="8" indexofinput="2" outputowner="0" indexofoutput="1" />
+                                                                <Box name="LookForPeopleController" id="6" tooltip="Enter tooltip here" x="96" y="91">
+                                                                    <bitmap>media/images/box/box-diagram.png</bitmap>
+                                                                    <script language="4">
+                                                                        <content>
+                                                                            <![CDATA[]]>
+</content>
+                                                                    </script>
+                                                                    <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
+                                                                    <Input name="onStart" type="1" type_size="1" nature="2" inner="0" tooltip="Box behavior starts when a signal is received on this input." id="2" />
+                                                                    <Input name="onStop" type="1" type_size="1" nature="3" inner="0" tooltip="Box behavior stops when a signal is received on this input." id="3" />
+                                                                    <Input name="WandererEventLookForPeople" type="0" type_size="1" nature="4" stm_value_name="WandererEventLookForPeople" inner="1" tooltip="WandererEventLookForPeople desc" id="4" />
+                                                                    <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="5" />
+                                                                    <Output name="startLookingForPeople" type="1" type_size="1" nature="2" inner="0" tooltip="" id="6" />
+                                                                    <Output name="stopLookingForPeople" type="1" type_size="1" nature="2" inner="0" tooltip="" id="7" />
+                                                                    <Timeline enable="0">
+                                                                        <BehaviorLayer name="behavior_layer1">
+                                                                            <BehaviorKeyframe name="keyframe1" index="1">
+                                                                                <Diagram>
+                                                                                    <Box name="Controller" id="1" tooltip="Enter tooltip here" x="151" y="35">
+                                                                                        <bitmap>media/images/box/box-diagram.png</bitmap>
+                                                                                        <script language="4">
+                                                                                            <content>
+                                                                                                <![CDATA[class MyClass(GeneratedClass):
+    def __init__(self):
+        GeneratedClass.__init__(self)
+        pass
+
+    def onLoad(self):
+        #~ puts code for box initialization here
+        pass
+
+    def onUnload(self):
+        #~ puts code for box cleanup here
+        pass
+
+    def onInput_onStart(self):
+        #~ self.onStopped() #~ activate output of the box
+        # TODO write real logic
+        self.StopLookingForPeople()
+
+    def onInput_onStop(self):
+        self.onUnload() 
+
+    def onInput_lookForPeopleConfigChange(self, p):
+       # TODO handle event 
+        pass]]>
+</content>
+                                                                                        </script>
+                                                                                        <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
+                                                                                        <Input name="onStart" type="1" type_size="1" nature="2" inner="0" tooltip="Box behavior starts when a signal is received on this input." id="2" />
+                                                                                        <Input name="onStop" type="1" type_size="1" nature="3" inner="0" tooltip="Box behavior stops when a signal is received on this input." id="3" />
+                                                                                        <Input name="lookForPeopleConfigChange" type="2" type_size="1" nature="1" inner="0" tooltip="" id="4" />
+                                                                                        <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="5" />
+                                                                                        <Output name="startLookingForPeople" type="1" type_size="1" nature="2" inner="0" tooltip="" id="6" />
+                                                                                        <Output name="stopLookingForPeople" type="1" type_size="1" nature="2" inner="0" tooltip="" id="7" />
+                                                                                    </Box>
+                                                                                    <Link inputowner="1" indexofinput="4" outputowner="0" indexofoutput="4" />
+                                                                                    <Link inputowner="0" indexofinput="6" outputowner="1" indexofoutput="6" />
+                                                                                    <Link inputowner="0" indexofinput="7" outputowner="1" indexofoutput="7" />
+                                                                                    <Link inputowner="0" indexofinput="5" outputowner="1" indexofoutput="5" />
+                                                                                    <Link inputowner="1" indexofinput="2" outputowner="0" indexofoutput="2" />
+                                                                                </Diagram>
+                                                                            </BehaviorKeyframe>
+                                                                        </BehaviorLayer>
+                                                                    </Timeline>
+                                                                </Box>
                                                                 <Link inputowner="2" indexofinput="3" outputowner="2" indexofoutput="6" />
                                                                 <Link inputowner="3" indexofinput="2" outputowner="2" indexofoutput="6" />
                                                                 <Link inputowner="4" indexofinput="2" outputowner="3" indexofoutput="5" />
@@ -6173,9 +6204,12 @@ class MyClass(GeneratedClass):
                                                                 <Link inputowner="10" indexofinput="5" outputowner="9" indexofoutput="4" />
                                                                 <Link inputowner="5" indexofinput="2" outputowner="10" indexofoutput="7" />
                                                                 <Link inputowner="1" indexofinput="2" outputowner="7" indexofoutput="4" />
-                                                                <Link inputowner="2" indexofinput="2" outputowner="0" indexofoutput="1" />
-                                                                <Link inputowner="10" indexofinput="2" outputowner="0" indexofoutput="1" />
-                                                                <Link inputowner="5" indexofinput="2" outputowner="0" indexofoutput="1" />
+                                                                <Link inputowner="2" indexofinput="2" outputowner="6" indexofoutput="6" />
+                                                                <Link inputowner="10" indexofinput="2" outputowner="6" indexofoutput="6" />
+                                                                <Link inputowner="5" indexofinput="2" outputowner="6" indexofoutput="6" />
+                                                                <Link inputowner="6" indexofinput="2" outputowner="0" indexofoutput="1" />
+                                                                <Link inputowner="2" indexofinput="3" outputowner="6" indexofoutput="7" />
+                                                                <Link inputowner="9" indexofinput="2" outputowner="6" indexofoutput="7" />
                                                             </Diagram>
                                                         </BehaviorKeyframe>
                                                         <BehaviorKeyframe name="L2-Inactive-2" index="50">

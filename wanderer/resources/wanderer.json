@@ -4,6 +4,7 @@
    "mapperClass" : "wanderer.grid_mapper.OccupancyGridMapper",
    "updaterClasses" : [ "wanderer.dataposter.DataPoster" ],
    "httpPort" : 8080,
+   "lookForPeople" : false,
    "dataCollectorHost" : "192.168.0.2",
    "dataCollectorPort" : 8080
 }
