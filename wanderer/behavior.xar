@@ -6635,44 +6635,6 @@ class MyClass(GeneratedClass):
                                                             <Diagram />
                                                         </BehaviorKeyframe>
                                                     </BehaviorLayer>
-                                                    <ActuatorList model="Nao">
-                                                        <ActuatorCurve name="value" actuator="LAnklePitch" recordable="0" mute="0" unit="0">
-                                                            <Key frame="25" value="3.79112" />
-                                                        </ActuatorCurve>
-                                                        <ActuatorCurve name="value" actuator="LAnkleRoll" recordable="0" mute="0" unit="0">
-                                                            <Key frame="25" value="-6.08628" />
-                                                        </ActuatorCurve>
-                                                        <ActuatorCurve name="value" actuator="LHipPitch" recordable="0" mute="0" unit="0">
-                                                            <Key frame="25" value="11.3114" />
-                                                        </ActuatorCurve>
-                                                        <ActuatorCurve name="value" actuator="LHipRoll" recordable="0" mute="0" unit="0">
-                                                            <Key frame="25" value="6.35112" />
-                                                        </ActuatorCurve>
-                                                        <ActuatorCurve name="value" actuator="LHipYawPitch" recordable="0" mute="0" unit="0">
-                                                            <Key frame="25" value="-9.13062" />
-                                                        </ActuatorCurve>
-                                                        <ActuatorCurve name="value" actuator="LKneePitch" recordable="0" mute="0" unit="0">
-                                                            <Key frame="25" value="-4.71999" />
-                                                        </ActuatorCurve>
-                                                        <ActuatorCurve name="value" actuator="RAnklePitch" recordable="0" mute="0" unit="0">
-                                                            <Key frame="25" value="3.36102" />
-                                                        </ActuatorCurve>
-                                                        <ActuatorCurve name="value" actuator="RAnkleRoll" recordable="0" mute="0" unit="0">
-                                                            <Key frame="25" value="3.7426" />
-                                                        </ActuatorCurve>
-                                                        <ActuatorCurve name="value" actuator="RHipPitch" recordable="0" mute="0" unit="0">
-                                                            <Key frame="25" value="10.4368" />
-                                                        </ActuatorCurve>
-                                                        <ActuatorCurve name="value" actuator="RHipRoll" recordable="0" mute="0" unit="0">
-                                                            <Key frame="25" value="-3.82477" />
-                                                        </ActuatorCurve>
-                                                        <ActuatorCurve name="value" actuator="RHipYawPitch" recordable="0" mute="0" unit="0">
-                                                            <Key frame="25" value="-9.13062" />
-                                                        </ActuatorCurve>
-                                                        <ActuatorCurve name="value" actuator="RKneePitch" recordable="0" mute="0" unit="0">
-                                                            <Key frame="25" value="-3.75747" />
-                                                        </ActuatorCurve>
-                                                    </ActuatorList>
                                                 </Timeline>
                                             </Box>
                                             <Link inputowner="11" indexofinput="2" outputowner="0" indexofoutput="1" />
