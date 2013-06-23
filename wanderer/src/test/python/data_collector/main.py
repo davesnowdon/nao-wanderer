@@ -32,8 +32,9 @@ class CollectorRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             postvars = {}
         print postvars['sensordata']
         filedata = postvars['fileupload']
+        basename = "{prefix}-{index:04d}".format(prefix=PREFIX, index=INDEX)
         if filedata:
-            filename = "{prefix}-{index}.jpg".format(prefix=PREFIX, index=INDEX)
+            filename = basename + ".jpg"
             path = os.path.join(DATA_DIR, filename)
             with open(path, "wb") as out:
                 out.write(''.join(filedata))
@@ -41,7 +42,7 @@ class CollectorRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         sensordata = postvars['sensordata']
         if sensordata:
             print "Sensordata: {}\n".format(sensordata)
-            json_filename = "{prefix}-{index}.json".format(prefix=PREFIX, index=INDEX)
+            json_filename = basename + ".json"
             path = os.path.join(DATA_DIR, json_filename)
             with open(path, "w") as out:
                 out.write("{}\n".format(sensordata))
